@@ -1,0 +1,1 @@
+{"name":"Zhong Xina","version":"1.0.0","description":"Keeps the server tidy and gives out social credits.","main":"bot.js","author":"Zsolt Tóth","dependencies":{"@discordjs/builders":"^0.8.2","@discordjs/rest":"^0.1.0-canary.0","discord-api-types":"^0.24.0","discord.io":"https://github.com/woor/discord.io/tarball/gateway_v6","discord.js":"^13.3.1","winston":"^3.3.3"}}
