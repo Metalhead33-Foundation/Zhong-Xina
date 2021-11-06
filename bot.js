@@ -104,12 +104,12 @@ async function decreaseSocialCredit(user,credits) {
 async function socialPlus20(msg) {
 	const author = msg.author.id;
 	await increaseSocialCredit(msg.author,20);
-	await msg.reply( { files: [socialGood] } );
+	//await msg.author.send( { files: [socialGood] } );
 }
 async function socialMinus20(msg) {
 	const author = msg.author.id;
 	await decreaseSocialCredit(msg.author,20);
-	await msg.reply( { files: [socialBad] } );
+	//await msg.author.send( { files: [socialBad] } );
 }
 
 // CLIENT REGISTRATIONS
