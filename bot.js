@@ -64,12 +64,12 @@ Array.prototype.random = function () {
 }
 async function saveSocialCredits() {
 	await fs.writeFile("SocialCredits.json", strMapToJson(socialCredits), 'utf8',  (err) => {
-  if (err) throw err;
+  if (err) Console.log("Failed to save social credits!");
   console.log('The file has been saved!');});
 }
 async function loadSocialCredits() {
 	await fs.readFile('SocialCredits.json', 'utf8', (err, data) => {
-	if (err) return;
+	if (err) Console.log("Failed to load social credits!");
 	socialCredits = jsonToStrMap(data);
 	});
 }
@@ -143,9 +143,9 @@ client.on('interactionCreate', async interaction => {
 	if (commandName === 'flushsocre') {
 		if (interaction.member.permissions.has(Permissions.FLAGS.BAN_MEMBERS) ) {
 		await saveSocialCredits();
-		await interaction.reply('Succesfully flushed social credits to the filesystem!');
+		await interaction.reply({ephemeral: true, content: 'Succesfully flushed social credits to the filesystem!'});
 		} else {
-		await interaction.reply('Admin-only command!');
+		await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
 		}
 	} else if (commandName === 'hohol') {
 		increaseSocialCredit(interaction.user,10);
@@ -156,19 +156,19 @@ client.on('interactionCreate', async interaction => {
 	} else if (commandName === 'mysocred') {
 		if(socialCredits.has(interaction.user.id)) {
 			const socre = socialCredits.get(interaction.user.id);
-			await interaction.reply(`Your tag: ${interaction.user.tag}\nYour social credits: ${socre}`);
+			await interaction.reply({ephemeral: true, content: `**Your tag:** ${interaction.user.tag}\n**Your social credits:** ${socre}` });
 		} else {
 			socialCredits.set(interaction.user.id,DEFAULT_SOCIAL_CREDITS);
-			await interaction.reply(`Your tag: ${interaction.user.tag}\nYour social credits: ${DEFAULT_SOCIAL_CREDITS}`);
+			await interaction.reply({ephemeral: true, content: `**Your tag:** ${interaction.user.tag}\n**Your social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
 		}
 	} else if (commandName === 'socred') {
 		const user = interaction.options.getUser('user');
 		if(socialCredits.has(user.id)) {
 			const socre = socialCredits.get(user.id);
-			await interaction.reply(`User tag: ${user.tag}\nUser social credits: ${socre}`);
+			await interaction.reply({ephemeral: true, content: `**User tag:** ${user.tag}\n**User social credits:** ${socre}`});
 		} else {
 			socialCredits.set(user.id,DEFAULT_SOCIAL_CREDITS);
-			await interaction.reply(`User tag: ${user.tag}\nUser social credits: ${DEFAULT_SOCIAL_CREDITS}`);
+			await interaction.reply({ephemeral: true, content: `**User tag:** ${user.tag}\n**User social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
 		}
 	}
 });
