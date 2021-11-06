@@ -24,7 +24,7 @@ const inchenHanchi = 'https://youtu.be/3J6m2xwqLnY';
 const noCaps = 'Whoa, easy with the all-caps bro!';
 const noSlurs = 'Please don\' use racial slurs. They\'re harmful to the server\'s existence.';
 const noPolitick = 'Getting awfully political for <#795737593923895337>! Mind taking it to <#795737668654071818>?';
-let politicalWords = [ 'nazi', 'communist', 'commie', 'leftist', 'left-wing', 'right-wing', 'far-right', 'jew', 'joos', 'jooz', 'jude', 'jewish', 'kike', 'skype', 'judish', 'judisch', 'yiddish', 'żyd', 'jevrej', 'jevrei', 'yevrey', 'yevrei', 'long-nose tribe', 'holocaust' ]; 
+let politicalWords = [ 'nazi', 'communist', 'communism', 'racism', 'racist', 'transgender', 'commie', 'leftist', 'left-wing', 'right-wing', 'far-right', 'jew', 'joos', 'jooz', 'jude', 'jewish', 'kike', 'skype', 'judish', 'judisch', 'yiddish', 'żyd', 'jevrej', 'jevrei', 'yevrey', 'yevrei', 'long-nose tribe', 'holocaust' ]; 
 let racialSlurs = [ 'nigger', 'knee-grow', 'nignog', 'nig-nog' ];
 var socialCredits = new Map();
 const DEFAULT_SOCIAL_CREDITS = 1000;
@@ -104,12 +104,16 @@ async function decreaseSocialCredit(user,credits) {
 async function socialPlus20(msg) {
 	const author = msg.author.id;
 	await increaseSocialCredit(msg.author,20);
-	//await msg.author.send( { files: [socialGood] } );
+	await msg.reply( { files: [socialGood] } ).then(msg => {
+    setTimeout(() => msg.delete(), 20000)
+  });
 }
 async function socialMinus20(msg) {
 	const author = msg.author.id;
 	await decreaseSocialCredit(msg.author,20);
-	//await msg.author.send( { files: [socialBad] } );
+	await msg.reply( { files: [socialBad] } ).then(msg => {
+    setTimeout(() => msg.delete(), 20000)
+  });
 }
 
 // CLIENT REGISTRATIONS
@@ -189,7 +193,7 @@ client.on('messageCreate', async msg => {
 	if(msg.channelId === '795737593923895337') {
 			politicalWords.forEach(async function(item, index, array) {
 				if(lower.includes(item)) {
-					await decreaseSocialCredit(msg.author,10);
+					await decreaseSocialCredit(msg.author,10 + str.length);
 					await msg.reply(noPolitick);
 					return;
 				}
@@ -197,7 +201,7 @@ client.on('messageCreate', async msg => {
 	}
 	racialSlurs.forEach(async function(item, index, array) {
 		if(lower.includes(item)) {
-			await decreaseSocialCredit(msg.author,10);
+			await decreaseSocialCredit(msg.author,10 + str.length );
 			await msg.reply(noSlurs);
 			return;
 		}
