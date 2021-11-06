@@ -14,6 +14,7 @@ To run - which is done via issuing the `node bot.js` command - first, an `auth.j
 {
 "token": "<YOUR BOT OAUTH TOKEN>",
 "guildId": "<YOUR DISCORD SERVER ID>",
-"clientId": "<YOUR BOT OAUTH CLIENT ID>"
+"clientId": "<YOUR BOT OAUTH CLIENT ID>",
+"RestHttp": 
 }
 ```
