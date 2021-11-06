@@ -8,7 +8,7 @@ To run, a couple of dependencies must be installed:
 
     yarn install
 
-To run - which is done via issuing the `node bot.js` command - first, an `auth.json` file must be created in the same folder with the following credentials:
+To run - which is done via issuing the `node src/bot.js` command - first, an `auth.json` file must be created in the same folder with the following credentials:
 
 ```json
 {
@@ -18,3 +18,5 @@ To run - which is done via issuing the `node bot.js` command - first, an `auth.j
 "RestHttp": 
 }
 ```
+
+Alternatively, you can use the Docker image.
