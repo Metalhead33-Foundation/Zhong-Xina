@@ -6,7 +6,7 @@ A Discord bot who keeps the server tidy and gives out social credits. He is spec
 
 To run, a couple of dependencies must be installed:
 
-    npm install winston discord.js @discordjs/builders @discordjs/rest discord-api-types
+    yarn add winston discord.js @discordjs/builders @discordjs/rest discord-api-types
 
 To run - which is done via issuing the `node bot.js` command - first, an `auth.json` file must be created in the same folder with the following credentials:
 
