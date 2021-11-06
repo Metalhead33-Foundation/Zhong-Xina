@@ -178,12 +178,19 @@ client.on('interactionCreate', async interaction => {
 });
 client.on('messageReactionAdd', async (reaction, user) => {
 	const str = reaction.emoji.toString();
-	const author = reaction.message.author.id;
 	// <@!906261693775093821>
 	if(str === '🇨🇳') {
 		await socialPlus20(reaction.message);
 	} else if(str === '🇹🇼') {
 		await socialMinus20(reaction.message);
+	}
+});
+client.on('messageReactionRemove', async (reaction, user) => {
+	const str = reaction.emoji.toString();
+	if(str === '🇨🇳') {
+		await decreaseSocialCredit(reaction.message.author,20);
+	} else if(str === '🇹🇼') {
+		await increaseSocialCredit(reaction.message.author,20);
 	}
 });
 client.on('messageCreate', async msg => {
