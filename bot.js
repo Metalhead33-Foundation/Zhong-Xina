@@ -10,7 +10,11 @@ const zhongSongs = [ 'https://www.youtube.com/watch?v=QiqmbbrNW6k',
 					'https://www.youtube.com/watch?v=LB1P8IAiDwk',
 					'https://www.youtube.com/watch?v=10cPXoKjRKI',
 					'https://www.youtube.com/watch?v=EzApQy2DcSg' ];
-const hoholSong = 'https://www.youtube.com/watch?v=w0eq30gJV2U';
+const hohols = [
+	'https://www.youtube.com/watch?v=w0eq30gJV2U', 'https://tenor.com/view/hohol-ukrainian-dance-pigs-gif-20883345',
+	'https://tenor.com/view/hohol-gif-20476649', 'https://tenor.com/view/rei-ayanami-ukraine-hohol-evangelion-gif-22605880',
+	'https://tenor.com/view/%D1%81%D0%BB%D0%B0%D0%B2%D0%B8%D0%BA%D0%BE%D0%BB%D0%B4-%D0%B6%D0%BE%D0%B6%D0%BE-%D1%84%D0%BB%D0%B5%D0%BA%D1%81-%D0%BC%D1%83%D1%85%D0%B0%D0%BC%D0%BC%D0%B5%D0%B4-%D0%BA%D1%83%D0%B4%D0%B6%D0%BE-gif-16553377', 'https://tenor.com/view/%D1%85%D0%BE%D1%85%D0%BB%D0%B0-%D0%B7%D0%B0%D0%B1%D1%8B%D0%BB%D0%B8-moonphobia-gif-20381443', 'https://tenor.com/view/hohol-gif-20486476', 'https://tenor.com/view/ukraine-ukrainian-animation-scared-scary-aaaah-gif-12499590', 'https://tenor.com/view/azerbaycan-ukrayna-flag-bayra%C4%9F-%D0%B0%D0%B7%D0%B5%D1%80%D0%B1%D0%B0%D0%B9%D0%B4%D0%B6%D0%B0%D0%BD-gif-18215874', 'https://tenor.com/view/ukraine-flag-ukraine-flag-flag-ukraine-ukraine-map-gif-14339705', 'https://tenor.com/view/pig-piggy-hohol-hohlinka-cute-gif-20598787', 'https://tenor.com/view/hohol-gif-23566318', 'https://tenor.com/view/nikocado-avocado-mental-breakdown-mukbang-rage-angry-food-eating-gif-17940312'
+];
 const inchenHanchi = 'https://youtu.be/3J6m2xwqLnY';
 const noCaps = 'Whoa, easy with the all-caps bro!';
 const noSlurs = 'Please don\' use racial slurs. They\'re harmful to the server\'s existence.';
@@ -59,6 +63,7 @@ function socialMinus20(msg) {
 
 // CLIENT REGISTRATIONS
 const commands = [
+	new SlashCommandBuilder().setName('hohol').setDescription('Posts a cute Hohol gif.'),
 	new SlashCommandBuilder().setName('mysocred').setDescription('Queries the amount of social credits you have.'),
 	new SlashCommandBuilder().setName('socred').setDescription('Queries the amount of social credits a user has.')
 	.addUserOption(option =>
@@ -80,7 +85,9 @@ client.on('interactionCreate', async interaction => {
 
 	const { commandName } = interaction;
 
-	if (commandName === 'mysocred') {
+	if (commandName === 'hohol') {
+		await interaction.reply(hohols.random());
+	} else if (commandName === 'mysocred') {
 		if(socialCredits.has(interaction.user.id)) {
 			const socre = socialCredits.get(interaction.user.id);
 			await interaction.reply(`Your tag: ${interaction.user.tag}\nYour social credits: ${socre}`);
@@ -132,11 +139,6 @@ client.on('messageCreate', msg => {
 	if(upper === str && str.length >= 2) {
 		decreaseSocialCredit(msg.author,5);
 		msg.reply(noCaps);
-		return;
-	}
-	if(lower === 'hohol') {
-		increaseSocialCredit(msg.author,15);
-		msg.reply(hoholSong);
 		return;
 	}
 	if(msg.author.id === '211532261386878976') {
