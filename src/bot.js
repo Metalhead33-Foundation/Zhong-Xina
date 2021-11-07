@@ -1,5 +1,6 @@
 var logger = require('winston');
-const { token, guildId, clientId } = require('./auth.json');
+const { XMLHttpRequest } = require('xmlhttprequest');
+const { token, guildId, clientId, RestHttp } = require('./auth.json');
 const { Client, Intents, Permissions } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
@@ -63,15 +64,27 @@ Array.prototype.random = function () {
   return this[Math.floor((Math.random()*this.length))];
 }
 async function saveSocialCredits() {
-	await fs.writeFile("SocialCredits.json", strMapToJson(socialCredits), 'utf8',  (err) => {
-  if (err) Console.log("Failed to save social credits!");
-  console.log('The file has been saved!');});
+	var request = new XMLHttpRequest();
+    request.open('PUT', RestHttp, true);
+    request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+	request.onreadystatechange = function () {
+        if (request.readyState === 4 && request.status === 200) {
+            console.log('Succesfully flushed social credits!');
+        }
+    }
+	await request.send(strMapToJson(socialCredits));
 }
 async function loadSocialCredits() {
-	await fs.readFile('SocialCredits.json', 'utf8', (err, data) => {
-	if (err) Console.log("Failed to load social credits!");
-	socialCredits = jsonToStrMap(data);
-	});
+	var request = new XMLHttpRequest();
+    request.open('GET', RestHttp + '/latest', true);
+    request.setRequestHeader("Accept", "application/json; charset=utf-8");
+	request.onreadystatechange = function () {
+        if (request.readyState === 4 && request.status === 200) {
+            socialCredits = jsonToStrMap(request.responseText);
+            console.log('Succesfully loaded social credits!');
+        }
+    }
+    await request.send(null);
 }
 function sendToSteph(msg) {
 	const user = client.users.cache.get('894820658461175809');
