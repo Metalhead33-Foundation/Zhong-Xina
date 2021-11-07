@@ -1,6 +1,6 @@
 var logger = require('winston');
 const { XMLHttpRequest } = require('xmlhttprequest');
-const { token, guildId, clientId, RestHttp } = require('./auth.json');
+const { token, guildId, clientId, RestHttp } = require(process.env.AUTHLOC ? process.env.AUTHLOC : './auth.json' );
 const { Client, Intents, Permissions } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
