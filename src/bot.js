@@ -1,3 +1,4 @@
+require('dotenv').config();
 var logger = require('winston');
 const { XMLHttpRequest } = require('xmlhttprequest');
 const { token, guildId, clientId, RestHttp } = require(process.env.AUTHLOC ? process.env.AUTHLOC : './auth.json' );
