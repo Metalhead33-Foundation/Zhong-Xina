@@ -94,6 +94,14 @@ function sendToSteph(msg) {
 	const user = client.users.cache.get('894820658461175809');
 	user.send(msg);
 }
+async function setSocialCredit(user,credits) {
+	socialCredits.set(user.id,credits);
+	++SOCRE_WRITES;
+	if(SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
+		await saveSocialCredits();
+		SOCRE_WRITES = 0;
+	}
+}
 async function increaseSocialCredit(user,credits) {
 	if(socialCredits.has(user.id)) {
 		socialCredits.set(user.id,socialCredits.get(user.id) + credits);
@@ -144,6 +152,33 @@ const commands = [
 	.addUserOption(option =>
 		option.setName('user')
 			.setDescription('The user whose social credits to query')
+			.setRequired(true)),
+	new SlashCommandBuilder().setName('socredadd').setDescription('Adds social credits to the user (admin-only).')
+	.addUserOption(option =>
+		option.setName('user')
+			.setDescription('The user whose social credits to add to')
+			.setRequired(true))
+	.addIntegerOption(option =>
+		option.setName('credits')
+			.setDescription('How many credits to add?')
+			.setRequired(true)),
+	new SlashCommandBuilder().setName('socredneg').setDescription('Reduces social credits from the user (admin-only).')
+	.addUserOption(option =>
+		option.setName('user')
+			.setDescription('The user whose social credits to add to')
+			.setRequired(true))
+	.addIntegerOption(option =>
+		option.setName('credits')
+			.setDescription('How many credits to deduct?')
+			.setRequired(true)),
+	new SlashCommandBuilder().setName('socredset').setDescription('Sets social credits to the user (admin-only).')
+	.addUserOption(option =>
+		option.setName('user')
+			.setDescription('The user whose social credits to add to')
+			.setRequired(true))
+	.addIntegerOption(option =>
+		option.setName('credits')
+			.setDescription('How many credits to set to?')
 			.setRequired(true))
 ].map(command => command.toJSON());
 const rest = new REST({ version: '9' }).setToken(token);
@@ -187,6 +222,41 @@ client.once('ready', () => {
 			socialCredits.set(user.id,DEFAULT_SOCIAL_CREDITS);
 			await interaction.reply({ephemeral: true, content: `**User tag:** <@!${user.id}>\n**User social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
 		}
+	} ); 
+	commandMap.set('socredadd', async function(interaction) {
+		if (!interaction.member.permissions.has(Permissions.FLAGS.BAN_MEMBERS)) {
+			await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+			return;
+		}
+		const user = interaction.options.getUser('user');
+		const prevSocre = socialCredits.get(user.id);
+		const credits = interaction.options.getInteger('credits');
+		await increaseSocialCredit(user,credits);
+		const socre = socialCredits.get(user.id);
+		await interaction.reply({ephemeral: true, content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${socre}.`});
+	} ); 
+	commandMap.set('socredneg', async function(interaction) {
+		if (!interaction.member.permissions.has(Permissions.FLAGS.BAN_MEMBERS)) {
+			await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+			return;
+		}
+		const user = interaction.options.getUser('user');
+		const prevSocre = socialCredits.get(user.id);
+		const credits = interaction.options.getInteger('credits');
+		await decreaseSocialCredit(user,credits);
+		const socre = socialCredits.get(user.id);
+		await interaction.reply({ephemeral: true, content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${socre}.`});
+	} ); 
+	commandMap.set('socredset', async function(interaction) {
+		if (!interaction.member.permissions.has(Permissions.FLAGS.BAN_MEMBERS)) {
+			await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+			return;
+		}
+		const user = interaction.options.getUser('user');
+		const prevSocre = socialCredits.get(user.id);
+		const credits = interaction.options.getInteger('credits');
+		await setSocialCredit(user,credits);
+		await interaction.reply({ephemeral: true, content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${credits}.`});
 	} ); 
 	commandMap.set('allsocred', async function(interaction) {
 		let str = "";
