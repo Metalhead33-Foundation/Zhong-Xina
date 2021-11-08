@@ -24,10 +24,12 @@ const hohols = [
 ];
 const inchenHanchi = 'https://youtu.be/3J6m2xwqLnY';
 const noCaps = 'Whoa, easy with the all-caps bro!';
-const noSlurs = 'Please don\' use racial slurs. They\'re harmful to the server\'s existence.';
-const noPolitick = 'Getting awfully political for <#795737593923895337>! Mind taking it to <#795737668654071818>?';
-let politicalWords = [ 'nazi', 'communist', 'communism', 'racism', 'racist', 'transgender', 'commie', 'leftist', 'left-wing', 'right-wing', 'far-right', 'jew', 'joos', 'jooz', 'jude', 'jewish', 'kike', 'skype', 'judish', 'judisch', 'yiddish', 'żyd', 'jevrej', 'jevrei', 'yevrey', 'yevrei', 'long-nose tribe', 'holocaust' ]; 
-let racialSlurs = [ 'nigger', 'knee-grow', 'nignog', 'nig-nog' ];
+const noSlurs = 'Please don\' use racial slurs, comrade. They\'re harmful to the server\'s existence.';
+const noDeathThreats = 'Issuing death threats on this server is the quickest way to get banned, comrade.'
+const noPolitick = 'Getting awfully political for <#795737593923895337>, comrade! Mind taking it to <#795737668654071818>?';
+const politicalWords = [ 'globohomo', 'globalist', 'nazi', 'communist', 'communism', 'racism', 'racist', 'transgender', 'commie', 'leftist', 'left-wing', 'right-wing', 'far-right', 'jew', 'joos', 'jooz', 'jude', 'jewish', 'kike', 'skype', 'judish', 'judisch', 'yiddish', 'żyd', 'jevrej', 'jevrei', 'yevrey', 'yevrei', 'long-nose tribe', 'holocaust' ]; 
+const racialSlurs = [ 'nigger', 'knee-grow', 'nignog', 'nig-nog' ];
+const deathThreats = [ 'll kill you', 'll kill u' ];
 var socialCredits = new Map();
 const DEFAULT_SOCIAL_CREDITS = 1000;
 const SOCIAL_CREDIT_BATCH_WRITES = 250;
@@ -133,6 +135,7 @@ async function socialMinus20(msg) {
 // CLIENT REGISTRATIONS
 const commands = [
 	new SlashCommandBuilder().setName('flushsocre').setDescription('Flush social credits onto a JSON file in the working directory (admin-only).'),
+	new SlashCommandBuilder().setName('allsocred').setDescription('Queries the social credits of all members (who are in the record).'),
 	new SlashCommandBuilder().setName('hohol').setDescription('Posts a cute Hohol gif.'),
 	new SlashCommandBuilder().setName('zhongxina').setDescription('Posts a cute Zhong Xina song.'),
 	new SlashCommandBuilder().setName('mysocred').setDescription('Queries the amount of social credits you have.'),
@@ -174,20 +177,24 @@ client.on('interactionCreate', async interaction => {
 	} else if (commandName === 'mysocred') {
 		if(socialCredits.has(interaction.user.id)) {
 			const socre = socialCredits.get(interaction.user.id);
-			await interaction.reply({ephemeral: true, content: `**Your tag:** ${interaction.user.tag}\n**Your social credits:** ${socre}` });
+			await interaction.reply({ephemeral: true, content: `**Your tag:** <@!${interaction.user.id}>\n**Your social credits:** ${socre}` });
 		} else {
 			socialCredits.set(interaction.user.id,DEFAULT_SOCIAL_CREDITS);
-			await interaction.reply({ephemeral: true, content: `**Your tag:** ${interaction.user.tag}\n**Your social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
+			await interaction.reply({ephemeral: true, content: `**Your tag:** <@!${interaction.user.id}>\n**Your social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
 		}
 	} else if (commandName === 'socred') {
 		const user = interaction.options.getUser('user');
 		if(socialCredits.has(user.id)) {
 			const socre = socialCredits.get(user.id);
-			await interaction.reply({ephemeral: true, content: `**User tag:** ${user.tag}\n**User social credits:** ${socre}`});
+			await interaction.reply({ephemeral: true, content: `**User tag:** <@!${user.id}>\n**User social credits:** ${socre}`});
 		} else {
 			socialCredits.set(user.id,DEFAULT_SOCIAL_CREDITS);
-			await interaction.reply({ephemeral: true, content: `**User tag:** ${user.tag}\n**User social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
+			await interaction.reply({ephemeral: true, content: `**User tag:** <@!${user.id}>\n**User social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
 		}
+	} else if (commandName === 'allsocred') {
+		let str = "";
+		socialCredits.forEach(function(value, key) { str = str + `<@!${key}> - ${value}\n`});
+			await interaction.reply({ephemeral: true, content: str});
 	}
 });
 client.on('messageReactionAdd', async (reaction, user) => {
@@ -227,12 +234,19 @@ client.on('messageCreate', async msg => {
 			return;
 		}
 	});
+	deathThreats.forEach(async function(item, index, array) {
+		if(lower.includes(item)) {
+			await decreaseSocialCredit(msg.author,200 + str.length * 2 );
+			await msg.reply(noDeathThreats);
+			return;
+		}
+	});
 	if(upper === str && (( str.length >= 2 && str.includes(' ') ) || str.length >= 6) ) {
 		await decreaseSocialCredit(msg.author,5 + str.length );
 		await msg.reply(noCaps);
 		return;
 	}
-	if(msg.author.id === '211532261386878976') {
+	if(msg.author.id === '211532261386878976' || msg.author.id === '186891819622203392') {
 		await decreaseSocialCredit(msg.author,1 + str.length);
 		await msg.reply(zhongSongs.random());
 		return;
