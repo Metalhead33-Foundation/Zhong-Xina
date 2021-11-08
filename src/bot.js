@@ -241,7 +241,7 @@ client.on('messageCreate', async msg => {
 			return;
 		}
 	});
-	if(upper === str && (( str.length >= 2 && str.includes(' ') ) || str.length >= 6) ) {
+	if(upper === str && !(lower === str) && str.length >= 2) {
 		await decreaseSocialCredit(msg.author,5 + str.length );
 		await msg.reply(noCaps);
 		return;
