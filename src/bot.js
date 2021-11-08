@@ -31,6 +31,7 @@ const politicalWords = [ 'globohomo', 'globalist', 'nazi', 'communist', 'communi
 const racialSlurs = [ 'nigger', 'knee-grow', 'nignog', 'nig-nog' ];
 const deathThreats = [ 'll kill you', 'll kill u' ];
 var socialCredits = new Map();
+var commandMap = new Map();
 const DEFAULT_SOCIAL_CREDITS = 1000;
 const SOCIAL_CREDIT_BATCH_WRITES = 250;
 const SOCIAL_CREDIT_WRITE_INTERVAL = 10000000;
@@ -153,28 +154,22 @@ rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
 // When the client is ready, run this code (only once)
 client.once('ready', () => {
 	loadSocialCredits();
-	console.log('Ready!');
-	setInterval(saveSocialCredits, SOCIAL_CREDIT_WRITE_INTERVAL);
-});
-client.on('interactionCreate', async interaction => {
-	if (!interaction.isCommand()) return;
-
-	const { commandName } = interaction;
-
-	if (commandName === 'flushsocre') {
+	commandMap.set('flushsocre', async function(interaction) {
 		if (interaction.member.permissions.has(Permissions.FLAGS.BAN_MEMBERS) ) {
 		await saveSocialCredits();
 		await interaction.reply({ephemeral: true, content: 'Succesfully flushed social credits to the filesystem!'});
 		} else {
 		await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
-		}
-	} else if (commandName === 'hohol') {
+		} } );
+	commandMap.set('hohol', async function(interaction) {
 		increaseSocialCredit(interaction.user,10);
 		await interaction.reply(hohols.random());
-	} else if (commandName === 'zhongxina') {
+	} );
+	commandMap.set('zhongxina', async function(interaction) {
 		increaseSocialCredit(interaction.user,10);
 		await interaction.reply(zhongSongs.random());
-	} else if (commandName === 'mysocred') {
+	} ); 
+	commandMap.set('mysocred', async function(interaction) {
 		if(socialCredits.has(interaction.user.id)) {
 			const socre = socialCredits.get(interaction.user.id);
 			await interaction.reply({ephemeral: true, content: `**Your tag:** <@!${interaction.user.id}>\n**Your social credits:** ${socre}` });
@@ -182,7 +177,8 @@ client.on('interactionCreate', async interaction => {
 			socialCredits.set(interaction.user.id,DEFAULT_SOCIAL_CREDITS);
 			await interaction.reply({ephemeral: true, content: `**Your tag:** <@!${interaction.user.id}>\n**Your social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
 		}
-	} else if (commandName === 'socred') {
+	} ); 
+	commandMap.set('socred', async function(interaction) {
 		const user = interaction.options.getUser('user');
 		if(socialCredits.has(user.id)) {
 			const socre = socialCredits.get(user.id);
@@ -191,10 +187,21 @@ client.on('interactionCreate', async interaction => {
 			socialCredits.set(user.id,DEFAULT_SOCIAL_CREDITS);
 			await interaction.reply({ephemeral: true, content: `**User tag:** <@!${user.id}>\n**User social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
 		}
-	} else if (commandName === 'allsocred') {
+	} ); 
+	commandMap.set('allsocred', async function(interaction) {
 		let str = "";
-		socialCredits.forEach(function(value, key) { str = str + `<@!${key}> - ${value}\n`});
+		socialCredits.forEach(function(value, key) { str = str + `**<@!${key}>:** ${value}\n`});
 			await interaction.reply({ephemeral: true, content: str});
+	} ); 
+	console.log('Ready!');
+	setInterval(saveSocialCredits, SOCIAL_CREDIT_WRITE_INTERVAL);
+});
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand()) return;
+
+	const { commandName } = interaction;
+	if(commandMap.has(commandName)) {
+		await commandMap.get(commandName)(interaction);
 	}
 });
 client.on('messageReactionAdd', async (reaction, user) => {
