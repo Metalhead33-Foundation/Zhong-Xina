@@ -1,6 +1,11 @@
 stages:
   - prepare
-  - package
+  - validate
+  - build
+  - deploy
+  - destroy
+
+include: "/infra/.gitlab-ci.yml"
 
 app:prepare:
   image: alpine/git:v2.26.2
@@ -18,8 +23,8 @@ app:prepare:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development" || $CI_COMMIT_BRANCH == "development" || $CI_COMMIT_TAG =~ /^release\//'
       when: on_success
 
-app:package:
-  stage: package
+app:build:
+  stage: build
   image: quay.io/buildah/stable:v1.16.0
   needs:
     - job: app:prepare

@@ -1,0 +1,3 @@
+.terraform/
+plan
+bot.version.auto.tfvars
