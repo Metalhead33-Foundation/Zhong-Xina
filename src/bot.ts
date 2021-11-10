@@ -1,12 +1,11 @@
-require('dotenv').config();
-var logger = require('winston');
-const { XMLHttpRequest } = require('xmlhttprequest');
+import fetch from 'node-fetch';
+import {Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User} from 'discord.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { REST } from '@discordjs/rest';
+import { Routes } from 'discord-api-types/v9';
+
 const { token, guildId, clientId, RestHttp } = require(process.env.AUTHLOC ? process.env.AUTHLOC : './auth.json' );
-const { Client, Intents, Permissions } = require('discord.js');
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
-const fs = require("fs");
+
 const socialGood = 'https://i.imgur.com/PtGG2kM.png';
 const socialBad = 'https://i.imgur.com/QhxWTbd.png';
 const zhongSongs = [ 'https://www.youtube.com/watch?v=QiqmbbrNW6k',
@@ -30,19 +29,19 @@ const noPolitick = 'Getting awfully political for <#795737593923895337>, comrade
 const politicalWords = [ 'globohomo', 'globalist', 'nazi', 'communist', 'communism', 'racism', 'racist', 'transgender', 'commie', 'leftist', 'left-wing', 'right-wing', 'far-right', 'jew', 'joos', 'jooz', 'jude', 'jewish', 'kike', 'skype', 'judish', 'judisch', 'yiddish', 'żyd', 'jevrej', 'jevrei', 'yevrey', 'yevrei', 'long-nose tribe', 'holocaust' ]; 
 const racialSlurs = [ 'nigger', 'knee-grow', 'nignog', 'nig-nog' ];
 const deathThreats = [ 'll kill you', 'll kill u' ];
-var socialCredits = new Map();
-var commandMap = new Map();
+let socialCredits = new Map<string, number>();
+const commandMap = new Map<string, (interaction: CommandInteraction) => Promise<void>>();
 const DEFAULT_SOCIAL_CREDITS = 1000;
 const SOCIAL_CREDIT_BATCH_WRITES = 250;
 const SOCIAL_CREDIT_WRITE_INTERVAL = 10000000;
-var SOCRE_WRITES = 0;
+let SOCRE_WRITES = 0;
 
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
 
 // HELPER FUNCTIONS
 
-function strMapToObj(strMap) {
+function strMapToObj<U>(strMap: Map<string, U>): Record<string, U> {
   let obj = Object.create(null);
   for (let [k,v] of strMap) {
     // We don’t escape the key '__proto__'
@@ -51,50 +50,41 @@ function strMapToObj(strMap) {
   }
   return obj;
 }
-function objToStrMap(obj) {
+function objToStrMap<U>(obj: Record<string, U>): Map<string, U> {
   let strMap = new Map();
   for (let k of Object.keys(obj)) {
     strMap.set(k, obj[k]);
   }
   return strMap;
 }
-function strMapToJson(strMap) {
+function strMapToJson<T>(strMap: Map<string, T>): string {
   return JSON.stringify(strMapToObj(strMap));
 }
-function jsonToStrMap(jsonStr) {
+function jsonToStrMap<T>(jsonStr: string): Map<string, T> {
   return objToStrMap(JSON.parse(jsonStr));
 }
-Array.prototype.random = function () {
-  return this[Math.floor((Math.random()*this.length))];
+function randomItem<T>(items: T[]): T {
+	return items[Math.floor((Math.random()*items.length))]
 }
+
 async function saveSocialCredits() {
-	var request = new XMLHttpRequest();
-    request.open('PUT', RestHttp, true);
-    request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
-	request.onreadystatechange = function () {
-        if (request.readyState === 4 && request.status === 200) {
-            console.log('Succesfully flushed social credits!');
-        }
-    }
-	await request.send(strMapToJson(socialCredits));
+	const response = await fetch(RestHttp + '/latest', {
+		method: 'PUT',
+		body: strMapToJson(socialCredits),
+	})
+	if (response.ok) {
+		console.log('Succesfully flushed social credits!');
+	}
 }
 async function loadSocialCredits() {
-	var request = new XMLHttpRequest();
-    request.open('GET', RestHttp + '/latest', true);
-    request.setRequestHeader("Accept", "application/json; charset=utf-8");
-	request.onreadystatechange = function () {
-        if (request.readyState === 4 && request.status === 200) {
-            socialCredits = jsonToStrMap(request.responseText);
-            console.log('Succesfully loaded social credits!');
-        }
-    }
-    await request.send(null);
+	const response = await fetch(RestHttp + '/latest');
+	socialCredits = jsonToStrMap(await response.text());
 }
-function sendToSteph(msg) {
+function sendToSteph(msg: any) {
 	const user = client.users.cache.get('894820658461175809');
-	user.send(msg);
+	user?.send(msg);
 }
-async function setSocialCredit(user,credits) {
+async function setSocialCredit(user: User, credits: number) {
 	socialCredits.set(user.id,credits);
 	++SOCRE_WRITES;
 	if(SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
@@ -102,9 +92,9 @@ async function setSocialCredit(user,credits) {
 		SOCRE_WRITES = 0;
 	}
 }
-async function increaseSocialCredit(user,credits) {
+async function increaseSocialCredit(user: User, credits: number) {
 	if(socialCredits.has(user.id)) {
-		socialCredits.set(user.id,socialCredits.get(user.id) + credits);
+		socialCredits.set(user.id,(socialCredits.get(user.id) ?? 0) + credits);
 	} else {
 		socialCredits.set(user.id,DEFAULT_SOCIAL_CREDITS + credits);
 	}
@@ -114,9 +104,9 @@ async function increaseSocialCredit(user,credits) {
 		SOCRE_WRITES = 0;
 	}
 }
-async function decreaseSocialCredit(user,credits) {
+async function decreaseSocialCredit(user: User,credits: number) {
 	if(socialCredits.has(user.id)) {
-		socialCredits.set(user.id,socialCredits.get(user.id) - credits);
+		socialCredits.set(user.id,(socialCredits.get(user.id) ?? 0) - credits);
 	} else {
 		socialCredits.set(user.id,DEFAULT_SOCIAL_CREDITS - credits);
 	}
@@ -126,19 +116,24 @@ async function decreaseSocialCredit(user,credits) {
 		SOCRE_WRITES = 0;
 	}
 }
-async function socialPlus20(msg) {
-	const author = msg.author.id;
+async function socialPlus20(msg: Message|PartialMessage) {
+	if (msg.author == null) {
+		console.log("socialPlus20: Message had no author")
+		return;
+	}
 	await increaseSocialCredit(msg.author,20);
 	await msg.reply( { files: [socialGood] } ).then(msg => {
     setTimeout(() => msg.delete(), 20000)
   });
 }
-async function socialMinus20(msg) {
-	const author = msg.author.id;
+async function socialMinus20(msg: Message|PartialMessage) {
+	if(msg.author == null) {
+		console.log("socialMinus20: Message had no author")
+		return;
+	}
 	await decreaseSocialCredit(msg.author,20);
-	await msg.reply( { files: [socialBad] } ).then(msg => {
-    setTimeout(() => msg.delete(), 20000)
-  });
+	const msgResponse = await msg.reply( { files: [socialBad] } );
+	setTimeout(() => msgResponse.delete(), 20000);
 }
 
 // CLIENT REGISTRATIONS
@@ -189,22 +184,22 @@ rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
 // When the client is ready, run this code (only once)
 client.once('ready', () => {
 	loadSocialCredits();
-	commandMap.set('flushsocre', async function(interaction) {
-		if (interaction.member.permissions.has(Permissions.FLAGS.BAN_MEMBERS) ) {
+	commandMap.set('flushsocre', async function(interaction: CommandInteraction) {
+		if ((interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS) ) {
 		await saveSocialCredits();
 		await interaction.reply({ephemeral: true, content: 'Succesfully flushed social credits to the filesystem!'});
 		} else {
 		await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
 		} } );
-	commandMap.set('hohol', async function(interaction) {
+	commandMap.set('hohol', async function(interaction: CommandInteraction) {
 		increaseSocialCredit(interaction.user,10);
-		await interaction.reply(hohols.random());
+		await interaction.reply(randomItem(hohols));
 	} );
-	commandMap.set('zhongxina', async function(interaction) {
+	commandMap.set('zhongxina', async function(interaction: CommandInteraction) {
 		increaseSocialCredit(interaction.user,10);
-		await interaction.reply(zhongSongs.random());
+		await interaction.reply(randomItem(zhongSongs));
 	} ); 
-	commandMap.set('mysocred', async function(interaction) {
+	commandMap.set('mysocred', async function(interaction: CommandInteraction) {
 		if(socialCredits.has(interaction.user.id)) {
 			const socre = socialCredits.get(interaction.user.id);
 			await interaction.reply({ephemeral: true, content: `**Your tag:** <@!${interaction.user.id}>\n**Your social credits:** ${socre}` });
@@ -213,8 +208,12 @@ client.once('ready', () => {
 			await interaction.reply({ephemeral: true, content: `**Your tag:** <@!${interaction.user.id}>\n**Your social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
 		}
 	} ); 
-	commandMap.set('socred', async function(interaction) {
+	commandMap.set('socred', async function(interaction: CommandInteraction) {
 		const user = interaction.options.getUser('user');
+		if(user == null) {
+			await interaction.reply({ephemeral: true, content: "User not found"});
+			return;
+		}
 		if(socialCredits.has(user.id)) {
 			const socre = socialCredits.get(user.id);
 			await interaction.reply({ephemeral: true, content: `**User tag:** <@!${user.id}>\n**User social credits:** ${socre}`});
@@ -223,42 +222,54 @@ client.once('ready', () => {
 			await interaction.reply({ephemeral: true, content: `**User tag:** <@!${user.id}>\n**User social credits:** ${DEFAULT_SOCIAL_CREDITS}`});
 		}
 	} ); 
-	commandMap.set('socredadd', async function(interaction) {
-		if (!interaction.member.permissions.has(Permissions.FLAGS.BAN_MEMBERS)) {
+	commandMap.set('socredadd', async function(interaction: CommandInteraction) {
+		if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
 			await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
 			return;
 		}
 		const user = interaction.options.getUser('user');
+		if(user == null) {
+			await interaction.reply({ephemeral: true, content: 'User not found'})
+			return;
+		}
 		const prevSocre = socialCredits.get(user.id);
 		const credits = interaction.options.getInteger('credits');
-		await increaseSocialCredit(user,credits);
+		await increaseSocialCredit(user,credits ?? 0);
 		const socre = socialCredits.get(user.id);
 		await interaction.reply({ephemeral: true, content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${socre}.`});
 	} ); 
-	commandMap.set('socredneg', async function(interaction) {
-		if (!interaction.member.permissions.has(Permissions.FLAGS.BAN_MEMBERS)) {
+	commandMap.set('socredneg', async function(interaction: CommandInteraction) {
+		if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
 			await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
 			return;
 		}
 		const user = interaction.options.getUser('user');
+		if(user == null) {
+			await interaction.reply({ephemeral: true, content: 'User not found'})
+			return;
+		}
 		const prevSocre = socialCredits.get(user.id);
 		const credits = interaction.options.getInteger('credits');
-		await decreaseSocialCredit(user,credits);
+		await decreaseSocialCredit(user,credits ?? 0);
 		const socre = socialCredits.get(user.id);
 		await interaction.reply({ephemeral: true, content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${socre}.`});
 	} ); 
-	commandMap.set('socredset', async function(interaction) {
-		if (!interaction.member.permissions.has(Permissions.FLAGS.BAN_MEMBERS)) {
+	commandMap.set('socredset', async function(interaction: CommandInteraction) {
+		if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
 			await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
 			return;
 		}
 		const user = interaction.options.getUser('user');
+		if(user == null) {
+			await interaction.reply({ephemeral: true, content: "User not found"});
+			return;
+		}
 		const prevSocre = socialCredits.get(user.id);
 		const credits = interaction.options.getInteger('credits');
-		await setSocialCredit(user,credits);
+		await setSocialCredit(user,credits ?? 0);
 		await interaction.reply({ephemeral: true, content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${credits}.`});
 	} ); 
-	commandMap.set('allsocred', async function(interaction) {
+	commandMap.set('allsocred', async function(interaction: CommandInteraction) {
 		let str = "";
 		socialCredits.forEach(function(value, key) { str = str + `**<@!${key}>:** ${value}\n`});
 			await interaction.reply({ephemeral: true, content: str});
@@ -270,11 +281,12 @@ client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
 
 	const { commandName } = interaction;
-	if(commandMap.has(commandName)) {
-		await commandMap.get(commandName)(interaction);
+	const command = commandMap.get(commandName)
+	if(command) {
+		await command(interaction);
 	}
 });
-client.on('messageReactionAdd', async (reaction, user) => {
+client.on('messageReactionAdd', async (reaction) => {
 	const str = reaction.emoji.toString();
 	// <@!906261693775093821>
 	if(str === '🇨🇳') {
@@ -283,49 +295,56 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		await socialMinus20(reaction.message);
 	}
 });
-client.on('messageReactionRemove', async (reaction, user) => {
+client.on('messageReactionRemove', async (reaction) => {
 	const str = reaction.emoji.toString();
+	if(reaction.message.author == null) {
+		console.log("messageReactionRemove: Message had no author")
+		return;
+	}
 	if(str === '🇨🇳') {
 		await decreaseSocialCredit(reaction.message.author,20);
 	} else if(str === '🇹🇼') {
 		await increaseSocialCredit(reaction.message.author,20);
 	}
 });
+
+function addMessage(cost: number, reply: string, prev: { deductions: number, replies: string[] }): { deductions: number, replies: string[]} {
+	const {deductions, replies} = prev;
+
+	return {deductions: deductions + cost, replies: [...replies, reply]}
+}
+
+function validateMessage(str: string, words: string[], reply: string, costFn: (str: string) => number, prev: {deductions: number, replies: string[]}): { deductions: number, replies: string[] } {
+	const lower = str.toLowerCase();
+
+	const deduction = words.reduce((total, item) => total + (lower.includes(item) ? costFn(str) : 0), 0)
+	if(deduction > 0) {
+		return addMessage(deduction, reply, prev)
+	}
+	return prev
+}
+
 client.on('messageCreate', async msg => {
 	const str = msg.content;
 	const lower = str.toLowerCase();
 	const upper = str.toUpperCase();
+	let validations: {deductions: number, replies: string[]} = {deductions: 0, replies: []};
 	if(msg.channelId === '795737593923895337') {
-			politicalWords.forEach(async function(item, index, array) {
-				if(lower.includes(item)) {
-					await decreaseSocialCredit(msg.author,10 + str.length);
-					await msg.reply(noPolitick);
-					return;
-				}
-			});
+		validations = validateMessage(str, politicalWords, noPolitick, (str) => 10 +str.length, validations)
 	}
-	racialSlurs.forEach(async function(item, index, array) {
-		if(lower.includes(item)) {
-			await decreaseSocialCredit(msg.author,10 + str.length );
-			await msg.reply(noSlurs);
-			return;
-		}
-	});
-	deathThreats.forEach(async function(item, index, array) {
-		if(lower.includes(item)) {
-			await decreaseSocialCredit(msg.author,200 + str.length * 2 );
-			await msg.reply(noDeathThreats);
-			return;
-		}
-	});
+	validations = validateMessage(str, racialSlurs, noSlurs, (str) => 10 + str.length, validations)
+	validations = validateMessage(str, deathThreats, noDeathThreats, (str) => 200 + str.length * 2, validations);
 	if(upper === str && !(lower === str) && str.length >= 2) {
-		await decreaseSocialCredit(msg.author,5 + str.length );
-		await msg.reply(noCaps);
-		return;
+		validations = addMessage(5 + str.length, noCaps, validations)
 	}
 	if(msg.author.id === '211532261386878976' || msg.author.id === '186891819622203392') {
-		await decreaseSocialCredit(msg.author,1 + str.length);
-		await msg.reply(zhongSongs.random());
+		validations = addMessage(1 + str.length, randomItem(zhongSongs), validations)
+	}
+	if(validations.deductions > 0) {
+		await decreaseSocialCredit(msg.author, 10 + str.length);
+		if(validations.replies.length > 0) {
+			await msg.reply(validations.replies.join("\n"));
+		}
 		return;
 	}
 	if(str === '🇨🇳') {

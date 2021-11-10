@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": false,
+    "module": "esnext",
+    "outDir": "./built",
+    "allowJs": false,
+    "rootDir": "./src",
+    "target": "ES6",
+    "moduleResolution": "Node"
+  }
+}
