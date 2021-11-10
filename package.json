@@ -4,6 +4,7 @@
   "description": "Keeps the server tidy and gives out social credits.",
   "main": "bot.js",
   "author": "Zsolt Tóth",
+  "type": "module",
   "dependencies": {
     "@discordjs/builders": "^0.8.2",
     "@discordjs/rest": "^0.1.0-canary.0",
