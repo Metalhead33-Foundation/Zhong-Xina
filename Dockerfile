@@ -1,4 +1,4 @@
-FROM node:17 AS builder
+FROM node:17-alpine3.14 AS builder
 RUN mkdir /app
 WORKDIR /app
 COPY package.json yarn.lock /app/
@@ -14,5 +14,6 @@ WORKDIR /app
 
 COPY --from=builder /app/built/ /app/
 COPY --from=builder /app/node_modules/ /app/node_modules/
+COPY --from=builder /app/package.json /app/
 
 ENTRYPOINT ["node", "./bot.js"]
