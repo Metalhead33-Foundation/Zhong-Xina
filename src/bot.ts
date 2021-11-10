@@ -77,8 +77,8 @@ async function saveSocialCredits() {
 	}
 }
 async function loadSocialCredits() {
-	const response = await fetch(RestHttp + '/latest')
-	socialCredits = objToStrMap(await response.json());
+	const response = await fetch(RestHttp + '/latest');
+	socialCredits = jsonToStrMap(await response.text());
 }
 function sendToSteph(msg: any) {
 	const user = client.users.cache.get('894820658461175809');
@@ -343,7 +343,7 @@ client.on('messageCreate', async msg => {
 	if(validations.deductions > 0) {
 		await decreaseSocialCredit(msg.author, 10 + str.length);
 		if(validations.replies.length > 0) {
-			await msg.reply(validations.replies.join(", "));
+			await msg.reply(validations.replies.join("\n"));
 		}
 		return;
 	}
