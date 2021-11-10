@@ -2,7 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "noEmit": false,
-    "module": "esnext",
+    "module": "CommonJS",
     "outDir": "./built",
     "allowJs": false,
     "rootDir": "./src",
