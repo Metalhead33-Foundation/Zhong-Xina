@@ -20,5 +20,5 @@ gitlab_app = "${APP}"
 
 namespace = "${NS}"
 
-image = "$CI_REGISTRY_IMAGE"
+bot_image = "$CI_REGISTRY_IMAGE"
 EOC
