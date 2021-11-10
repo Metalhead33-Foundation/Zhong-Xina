@@ -29,12 +29,12 @@ const noPolitick = 'Getting awfully political for <#795737593923895337>, comrade
 const politicalWords = [ 'globohomo', 'globalist', 'nazi', 'communist', 'communism', 'racism', 'racist', 'transgender', 'commie', 'leftist', 'left-wing', 'right-wing', 'far-right', 'jew', 'joos', 'jooz', 'jude', 'jewish', 'kike', 'skype', 'judish', 'judisch', 'yiddish', 'żyd', 'jevrej', 'jevrei', 'yevrey', 'yevrei', 'long-nose tribe', 'holocaust' ]; 
 const racialSlurs = [ 'nigger', 'knee-grow', 'nignog', 'nig-nog' ];
 const deathThreats = [ 'll kill you', 'll kill u' ];
-var socialCredits = new Map();
-var commandMap = new Map();
+let socialCredits = new Map<string, number>();
+const commandMap = new Map<string, (interaction: CommandInteraction) => Promise<void>>();
 const DEFAULT_SOCIAL_CREDITS = 1000;
 const SOCIAL_CREDIT_BATCH_WRITES = 250;
 const SOCIAL_CREDIT_WRITE_INTERVAL = 10000000;
-var SOCRE_WRITES = 0;
+let SOCRE_WRITES = 0;
 
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
@@ -94,7 +94,7 @@ async function setSocialCredit(user: User, credits: number) {
 }
 async function increaseSocialCredit(user: User, credits: number) {
 	if(socialCredits.has(user.id)) {
-		socialCredits.set(user.id,socialCredits.get(user.id) + credits);
+		socialCredits.set(user.id,(socialCredits.get(user.id) ?? 0) + credits);
 	} else {
 		socialCredits.set(user.id,DEFAULT_SOCIAL_CREDITS + credits);
 	}
@@ -106,7 +106,7 @@ async function increaseSocialCredit(user: User, credits: number) {
 }
 async function decreaseSocialCredit(user: User,credits: number) {
 	if(socialCredits.has(user.id)) {
-		socialCredits.set(user.id,socialCredits.get(user.id) - credits);
+		socialCredits.set(user.id,(socialCredits.get(user.id) ?? 0) - credits);
 	} else {
 		socialCredits.set(user.id,DEFAULT_SOCIAL_CREDITS - credits);
 	}
@@ -281,8 +281,9 @@ client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
 
 	const { commandName } = interaction;
-	if(commandMap.has(commandName)) {
-		await commandMap.get(commandName)(interaction);
+	const command = commandMap.get(commandName)
+	if(command) {
+		await command(interaction);
 	}
 });
 client.on('messageReactionAdd', async (reaction) => {
