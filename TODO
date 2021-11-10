@@ -1,0 +1,8 @@
+TODO
+===============	
+
+- Move away from storing social credits in JSON to storing them in an SQL database
+- Record social predicts for users per-guild, rather than globally _(only possible with SQL)_
+- Replace all the const arrays with readings from an SQL database, and create commands to allow servers to set their own bad words, reaction lists, etc. _(and making sure that the dedicated politics-channel and apolitical channels are no longer hardcoded)_
+- Find out, if commands can be hidden from non-admins
+- Only if the above 4 are fufilled, can the bot be ever opened up to the public.
