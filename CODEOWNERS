@@ -1,3 +1,4 @@
 [CI Configuration]
 CODEOWNERS          @dsonck
 .gitlab-ci.yml      @dsonck
+infra/              @dsonck
