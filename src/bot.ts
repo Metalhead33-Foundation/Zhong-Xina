@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import {Client, CommandInteraction, Intents, Interaction, Message, PartialMessage, Permissions, User} from 'discord.js';
+import {Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User} from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
@@ -41,7 +41,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 
 // HELPER FUNCTIONS
 
-function strMapToObj(strMap: any) {
+function strMapToObj<U>(strMap: Map<string, U>): Record<string, U> {
   let obj = Object.create(null);
   for (let [k,v] of strMap) {
     // We don’t escape the key '__proto__'
@@ -50,17 +50,17 @@ function strMapToObj(strMap: any) {
   }
   return obj;
 }
-function objToStrMap(obj: any) {
+function objToStrMap<U>(obj: Record<string, U>): Map<string, U> {
   let strMap = new Map();
   for (let k of Object.keys(obj)) {
     strMap.set(k, obj[k]);
   }
   return strMap;
 }
-function strMapToJson(strMap: any) {
+function strMapToJson<T>(strMap: Map<string, T>): string {
   return JSON.stringify(strMapToObj(strMap));
 }
-function jsonToStrMap(jsonStr: any) {
+function jsonToStrMap<T>(jsonStr: string): Map<string, T> {
   return objToStrMap(JSON.parse(jsonStr));
 }
 function randomItem<T>(items: T[]): T {
