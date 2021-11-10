@@ -307,41 +307,44 @@ client.on('messageReactionRemove', async (reaction) => {
 		await increaseSocialCredit(reaction.message.author,20);
 	}
 });
+
+function addMessage(cost: number, reply: string, prev: { deductions: number, replies: string[] }): { deductions: number, replies: string[]} {
+	const {deductions, replies} = prev;
+
+	return {deductions: deductions + cost, replies: [...replies, reply]}
+}
+
+function validateMessage(str: string, words: string[], reply: string, costFn: (str: string) => number, prev: {deductions: number, replies: string[]}): { deductions: number, replies: string[] } {
+	const lower = str.toLowerCase();
+
+	const deduction = words.reduce((total, item) => total + (lower.includes(item) ? costFn(str) : 0), 0)
+	if(deduction > 0) {
+		return addMessage(deduction, reply, prev)
+	}
+	return prev
+}
+
 client.on('messageCreate', async msg => {
 	const str = msg.content;
 	const lower = str.toLowerCase();
 	const upper = str.toUpperCase();
+	let validations: {deductions: number, replies: string[]} = {deductions: 0, replies: []};
 	if(msg.channelId === '795737593923895337') {
-			await Promise.all(politicalWords.map(async function(item) {
-				if(lower.includes(item)) {
-					await decreaseSocialCredit(msg.author,10 + str.length);
-					await msg.reply(noPolitick);
-					return;
-				}
-			}));
+		validations = validateMessage(str, politicalWords, noPolitick, (str) => 10 +str.length, validations)
 	}
-	await Promise.all(racialSlurs.map(async function(item) {
-		if(lower.includes(item)) {
-			await decreaseSocialCredit(msg.author,10 + str.length );
-			await msg.reply(noSlurs);
-			return;
-		}
-	}));
-	await Promise.all(deathThreats.map(async function(item) {
-		if(lower.includes(item)) {
-			await decreaseSocialCredit(msg.author,200 + str.length * 2 );
-			await msg.reply(noDeathThreats);
-			return;
-		}
-	}));
+	validations = validateMessage(str, racialSlurs, noSlurs, (str) => 10 + str.length, validations)
+	validations = validateMessage(str, deathThreats, noDeathThreats, (str) => 200 + str.length * 2, validations);
 	if(upper === str && !(lower === str) && str.length >= 2) {
-		await decreaseSocialCredit(msg.author,5 + str.length );
-		await msg.reply(noCaps);
-		return;
+		validations = addMessage(5 + str.length, noCaps, validations)
 	}
 	if(msg.author.id === '211532261386878976' || msg.author.id === '186891819622203392') {
-		await decreaseSocialCredit(msg.author,1 + str.length);
-		await msg.reply(randomItem(zhongSongs));
+		validations = addMessage(1 + str.length, randomItem(zhongSongs), validations)
+	}
+	if(validations.deductions > 0) {
+		await decreaseSocialCredit(msg.author, 10 + str.length);
+		if(validations.replies.length > 0) {
+			await msg.reply(validations.replies.join(", "));
+		}
 		return;
 	}
 	if(str === '🇨🇳') {
