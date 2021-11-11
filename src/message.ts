@@ -1,5 +1,5 @@
 import { MessageReaction, PartialMessageReaction, Message, PartialMessage } from 'discord.js';
-import { GuildFunctions } from './guild'
+import * as GuildFunctions from './guild'
 import { randomItem, zhongSongs } from './commands'
 
 const socialGood = 'https://i.imgur.com/PtGG2kM.png';

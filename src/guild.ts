@@ -32,95 +32,93 @@ function objToStrMap<U>(obj: Record<string, U>): Map<string, U> {
     return strMap;
 }
 
-export class GuildFunctions {
-
-static async saveSocialCredits() : Promise<void> {
+export async function saveSocialCredits() : Promise<void> {
     const response = await axios.put(RestHttp + '/latest', strMapToObj(socialCredits))
     if (response.status == 200) {
         console.log('Succesfully flushed social credits!');
     }
 }
-static async loadSocialCredits() : Promise<void> {
+export async function loadSocialCredits() : Promise<void> {
     const response = await axios.get(RestHttp + '/latest');
     socialCredits = objToStrMap(await response.data);
 }
-static async setPoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
+export async function setPoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
 	return;
 }
-static async getPoliticalWords(guild: Guild) : Promise<string[]> {
+export async function getPoliticalWords(guild: Guild) : Promise<string[]> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return politicalWords;
 }
-static async addPoliticalWord(word: string, guild: Guild) : Promise<void> {
+export async function addPoliticalWord(word: string, guild: Guild) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return;
 }
-static async removePoliticalWord(word: string, guild: Guild) : Promise<void> {
+export async function removePoliticalWord(word: string, guild: Guild) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return;
 }
-static async getRacialSlurs(guild: Guild) : Promise<string[]> {
+export async function getRacialSlurs(guild: Guild) : Promise<string[]> {
 	// Guild parameter currently unused - slur words will be per-guild after the SQL transition
 	return racialSlurs;
 }
-static async addRacialSlur(word: string, guild: Guild) : Promise<void> {
+export async function addRacialSlur(word: string, guild: Guild) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return;
 }
-static async removeRacialSlur(word: string, guild: Guild) : Promise<void> {
+export async function removeRacialSlur(word: string, guild: Guild) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return;
 }
-static async getDeathThreats(guild: Guild) : Promise<string[]> {
+export async function getDeathThreats(guild: Guild) : Promise<string[]> {
 	// Guild parameter currently unused - thread words will be per-guild after the SQL transition
 	return deathThreats;
 }
-static async addDeathThreat(word: string, guild: Guild) : Promise<void> {
+export async function addDeathThreat(word: string, guild: Guild) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return;
 }
-static async removeDeathThreat(word: string, guild: Guild) : Promise<void> {
+export async function removeDeathThreat(word: string, guild: Guild) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return;
 }
-static async getApoliticalChannels(guild: Guild) : Promise<string[]> {
+export async function getApoliticalChannels(guild: Guild) : Promise<string[]> {
 	// Guild parameter currently unused - apolitical channel IDs will be per-guild after the SQL transition
 	return apoliticalChannels;
 }
-static async addApoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
+export async function addApoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return;
 }
-static async removeApoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
+export async function removeApoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return;
 }
-static async getPoliticalChannel(guild: Guild) : Promise<string> {
+export async function getPoliticalChannel(guild: Guild) : Promise<string> {
 	// Guild parameter currently unused - political channel IDs will be per-guild after the SQL transition
 	return '795737668654071818';
 }
-static async generateNoPolitickString(id1: string, id2: string) : Promise<string> {
+export async function generateNoPolitickString(id1: string, id2: string) : Promise<string> {
 	return `Getting awfully political for <#${id1}>, comrade! Mind taking it to <#${id2}>?`;
 }
-static async getTrolledMembers(guild: Guild) : Promise<string[]> {
+export async function getTrolledMembers(guild: Guild) : Promise<string[]> {
 	// Guild parameter currently unused - trolled member IDs will be per-guild after the SQL transition
 	return trolledMembers;
 }
-static async addTrolledMember(user: User, guild: Guild) : Promise<void> {
+export async function addTrolledMember(user: User, guild: Guild) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return;
 }
-static async removeTrolledMember(user: User, guild: Guild) : Promise<void> {
+export async function removeTrolledMember(user: User, guild: Guild) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return;
 }
-static async getSocialCredits(user: User, guild: Guild) : Promise<number> {
+export async function getSocialCredits(user: User, guild: Guild) : Promise<number> {
 	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
 	if (socialCredits.has(user.id)) {
 		return socialCredits.get(user.id) || DEFAULT_SOCIAL_CREDITS;
 	} else return DEFAULT_SOCIAL_CREDITS;
 }
-static async getAllSocialCredits(guild: Guild) : Promise<Map<string, number>> {
+export async function getAllSocialCredits(guild: Guild) : Promise<Map<string, number>> {
 	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
 	return socialCredits;
 	/*let str = "";
@@ -129,16 +127,16 @@ static async getAllSocialCredits(guild: Guild) : Promise<Map<string, number>> {
 	});
 	return str;*/
 }
-static async setSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
+export async function setSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
 	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
     socialCredits.set(user.id, credits);
     ++SOCRE_WRITES;
     if (SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
-        await GuildFunctions.saveSocialCredits();
+        await saveSocialCredits();
         SOCRE_WRITES = 0;
     }
 }
-static async increaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
+export async function increaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
 	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
     if (socialCredits.has(user.id)) {
         socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) + credits);
@@ -147,11 +145,11 @@ static async increaseSocialCredit(user: User, guild: Guild, credits: number) : P
     }
     ++SOCRE_WRITES;
     if (SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
-        await GuildFunctions.saveSocialCredits();
+        await saveSocialCredits();
         SOCRE_WRITES = 0;
     }
 }
-static async decreaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
+export async function decreaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
 	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
     if (socialCredits.has(user.id)) {
         socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) - credits);
@@ -160,10 +158,9 @@ static async decreaseSocialCredit(user: User, guild: Guild, credits: number) : P
     }
     ++SOCRE_WRITES;
     if (SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
-        await GuildFunctions.saveSocialCredits();
+        await saveSocialCredits();
         SOCRE_WRITES = 0;
     }
 }
 
-}
 export { SOCIAL_CREDIT_WRITE_INTERVAL }

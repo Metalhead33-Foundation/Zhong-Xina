@@ -1,6 +1,6 @@
 import { Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User, Guild, Channel, GuildChannel, ThreadChannel } from 'discord.js';
 import { token } from './constants'
-import { GuildFunctions, SOCIAL_CREDIT_WRITE_INTERVAL } from './guild'
+import * as GuildFunctions from './guild'
 import { randomItem, passCommands, commandMap, zhongSongs } from './commands'
 import { checkupMsg, onReactCreate, onReactDestroy } from './message'
 
@@ -11,7 +11,7 @@ const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_M
 client.once('ready', () => {
 	passCommands();
     console.log('Ready!');
-    setInterval(GuildFunctions.saveSocialCredits, SOCIAL_CREDIT_WRITE_INTERVAL);
+    setInterval(GuildFunctions.saveSocialCredits, GuildFunctions.SOCIAL_CREDIT_WRITE_INTERVAL);
 });
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;

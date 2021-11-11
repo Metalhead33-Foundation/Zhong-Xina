@@ -1,5 +1,5 @@
 import { token, guildId, clientId, RestHttp } from './constants'
-import { GuildFunctions, SOCIAL_CREDIT_WRITE_INTERVAL } from './guild'
+import * as GuildFunctions from './guild'
 import { Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User, Guild, Channel, GuildChannel, ThreadChannel } from 'discord.js';
 import { SlashCommandBuilder} from '@discordjs/builders';
 import { REST} from '@discordjs/rest';
