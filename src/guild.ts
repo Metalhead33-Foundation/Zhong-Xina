@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User, Guild, Channel, GuildChannel, ThreadChannel } from 'discord.js';
+import { User, Guild, GuildChannel, ThreadChannel } from 'discord.js';
 import { APIInteractionDataResolvedChannel } from 'discord-api-types/v9';
 
 const politicalWords = ['globohomo', 'globalist', 'nazi', 'communist', 'communism', 'racism', 'racist', 'transgender', 'commie', 'leftist', 'left-wing', 'right-wing', 'far-right', 'jew', 'joos', 'jooz', 'jude', 'jewish', 'kike', 'skype', 'judish', 'judisch', 'yiddish', 'żyd', 'jevrej', 'jevrei', 'yevrey', 'yevrei', 'long-nose tribe', 'holocaust'];
