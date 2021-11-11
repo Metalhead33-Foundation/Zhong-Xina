@@ -101,40 +101,90 @@ async function loadSocialCredits() : Promise<void> {
 async function setPoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
 	return;
 }
-function getPoliticalWords(guild: Guild) : string[] {
+async function getPoliticalWords(guild: Guild) : Promise<string[]> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
 	return politicalWords;
 }
-function getRacialSlurs(guild: Guild) : string[] {
+async function addPoliticalWord(word: string, guild: Guild) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+async function removePoliticalWord(word: string, guild: Guild) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+async function getRacialSlurs(guild: Guild) : Promise<string[]> {
+	// Guild parameter currently unused - slur words will be per-guild after the SQL transition
 	return racialSlurs;
 }
-function getDeathThreats(guild: Guild) : string[] {
+async function addRacialSlur(word: string, guild: Guild) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+async function removeRacialSlur(word: string, guild: Guild) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+async function getDeathThreats(guild: Guild) : Promise<string[]> {
+	// Guild parameter currently unused - thread words will be per-guild after the SQL transition
 	return deathThreats;
 }
-function getApoliticalChannels(guild: Guild) : string[] {
+async function addDeathThreat(word: string, guild: Guild) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+async function removeDeathThreat(word: string, guild: Guild) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+async function getApoliticalChannels(guild: Guild) : Promise<string[]> {
+	// Guild parameter currently unused - apolitical channel IDs will be per-guild after the SQL transition
 	return apoliticalChannels;
 }
-function getPoliticalChannel(guild: Guild) : string {
+async function addApoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+async function removeApoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+async function getPoliticalChannel(guild: Guild) : Promise<string> {
+	// Guild parameter currently unused - political channel IDs will be per-guild after the SQL transition
 	return '795737668654071818';
 }
-function generateNoPolitickString(id1: string, id2: string) : string {
+async function generateNoPolitickString(id1: string, id2: string) : Promise<string> {
 	return `Getting awfully political for <#${id1}>, comrade! Mind taking it to <#${id2}>?`;
 }
-function getTrolledMembers(guild: Guild) : string[] {
+async function getTrolledMembers(guild: Guild) : Promise<string[]> {
+	// Guild parameter currently unused - trolled member IDs will be per-guild after the SQL transition
 	return trolledMembers;
 }
-function getSocialCredits(user: User, guild: Guild) : number {
+async function addTrolledMember(user: User, guild: Guild) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+async function removeTrolledMember(user: User, guild: Guild) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+async function getSocialCredits(user: User, guild: Guild) : Promise<number> {
+	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
 	if (socialCredits.has(user.id)) {
 		return socialCredits.get(user.id) || DEFAULT_SOCIAL_CREDITS;
 	} else return DEFAULT_SOCIAL_CREDITS;
 }
-function getAllSocialCredits(guild: Guild) : string {
-	let str = "";
+async function getAllSocialCredits(guild: Guild) : Promise<Map<string, number>> {
+	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
+	return socialCredits;
+	/*let str = "";
 	socialCredits.forEach(function (value, key) {
 		str = str + `**<@!${key}>:** ${value}\n`
 	});
-	return str;
+	return str;*/
 }
 async function setSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
+	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
     socialCredits.set(user.id, credits);
     ++SOCRE_WRITES;
     if (SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
@@ -143,6 +193,7 @@ async function setSocialCredit(user: User, guild: Guild, credits: number) : Prom
     }
 }
 async function increaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
+	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
     if (socialCredits.has(user.id)) {
         socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) + credits);
     } else {
@@ -155,6 +206,7 @@ async function increaseSocialCredit(user: User, guild: Guild, credits: number) :
     }
 }
 async function decreaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
+	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
     if (socialCredits.has(user.id)) {
         socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) - credits);
     } else {
@@ -232,11 +284,66 @@ const commands = [
             option.setName('credits')
                 .setDescription('How many credits to set to?')
                 .setRequired(true)),
-	new SlashCommandBuilder().setName('setpolchan').setDescription('Sets the designated political channel.')
+	new SlashCommandBuilder().setName('setpolchan').setDescription('Sets the designated political channel. (admin-only)')
 		.addChannelOption(option =>
 			option.setName('channel')
 				.setDescription('The designated political channel.')
-				.setRequired(true))
+				.setRequired(true)),
+	new SlashCommandBuilder().setName('apolchans').setDescription('Queries channels designated as political.'),
+	new SlashCommandBuilder().setName('addapolchan').setDescription('Designates a channel as strictly apolitical. (admin-only)')
+		.addChannelOption(option =>
+			option.setName('channel')
+				.setDescription('The designated apolitical channel.')
+				.setRequired(true)),
+	new SlashCommandBuilder().setName('remapolchan').setDescription('Undesignates a channel as strictly apolitical. (admin-only)')
+		.addChannelOption(option =>
+			option.setName('channel')
+				.setDescription('The undesignated apolitical channel.')
+				.setRequired(true)),
+    new SlashCommandBuilder().setName('polwords').setDescription('Queries the political words. (admin-only).'),
+    new SlashCommandBuilder().setName('addpolword').setDescription('Adds a word to the political words. (admin-only).')
+		.addStringOption(option =>
+			option.setName('word')
+				.setDescription('The word to add to the list of political words')
+				.setRequired(true)),
+    new SlashCommandBuilder().setName('rempolword').setDescription('Removes a word from the political words. (admin-only).')
+		.addStringOption(option =>
+			option.setName('word')
+				.setDescription('The word to remove from the list of political words')
+				.setRequired(true)),
+    new SlashCommandBuilder().setName('nwords').setDescription('Queries the forbidden racial slurs. (admin-only).'),
+    new SlashCommandBuilder().setName('addnword').setDescription('Adds a word to the list of forbidden racial slurs. (admin-only).')
+		.addStringOption(option =>
+			option.setName('word')
+				.setDescription('The word to add to the list of political words')
+				.setRequired(true)),
+    new SlashCommandBuilder().setName('remnword').setDescription('Removes a word from the list of forbidden racial slurs. (admin-only).')
+		.addStringOption(option =>
+			option.setName('word')
+				.setDescription('The word to remove from the list of political words')
+				.setRequired(true)),
+    new SlashCommandBuilder().setName('threatwords').setDescription('Queries the forbidden death threats. (admin-only).'),
+    new SlashCommandBuilder().setName('addthreatword').setDescription('Adds a word to the list of forbidden death threats. (admin-only).')
+		.addStringOption(option =>
+			option.setName('word')
+				.setDescription('The word to add to the list of political words')
+				.setRequired(true)),
+    new SlashCommandBuilder().setName('remthreatword').setDescription('Removes a word from the list of forbidden death threats. (admin-only).')
+		.addStringOption(option =>
+			option.setName('word')
+				.setDescription('The word to remove from the list of political words')
+				.setRequired(true)),
+    new SlashCommandBuilder().setName('mujahideen').setDescription('Queries members designated as mujahideen.'),
+    new SlashCommandBuilder().setName('addmujahid').setDescription('Designates a member as mujahid (admin-only).')
+        .addUserOption(option =>
+            option.setName('user')
+                .setDescription('The userto designate')
+                .setRequired(true)),
+    new SlashCommandBuilder().setName('remmujahid').setDescription('Undesignates a member as mujahid (admin-only).')
+        .addUserOption(option =>
+            option.setName('user')
+                .setDescription('The userto undesignate')
+                .setRequired(true))
 ].map(command => command.toJSON());
 const rest = new REST({version: '9'}).setToken(token);
 rest.put(Routes.applicationGuildCommands(clientId, guildId), {body: commands})
@@ -247,7 +354,7 @@ rest.put(Routes.applicationGuildCommands(clientId, guildId), {body: commands})
 client.once('ready', () => {
     loadSocialCredits();
     commandMap.set('flushsocre', async function (interaction: CommandInteraction) {
-        if ((interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
+        if ((interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
             await saveSocialCredits();
             await interaction.reply({
                 ephemeral: true,
@@ -354,12 +461,16 @@ client.once('ready', () => {
     });
     commandMap.set('allsocred', async function (interaction: CommandInteraction) {
 		if(interaction.guild) {
-            await interaction.reply({ephemeral: true, content: getAllSocialCredits(interaction.guild)});
+			let str = "";
+			(await getAllSocialCredits(interaction.guild)).forEach(function (value, key) {
+				str = str + `**<@!${key}>:** ${value}\n`
+			});
+            await interaction.reply({ephemeral: true, content: str});
 		}
     });
 	commandMap.set('setpolchan', async function (interaction: CommandInteraction) {
 		if(interaction.guild) {
-			if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
+			if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
 				await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
 				return;
 			} else {
@@ -372,6 +483,245 @@ client.once('ready', () => {
 			}
 		}
 	});
+	commandMap.set('apolchans', async function (interaction: CommandInteraction) {
+		if(interaction.guild) {
+			const channels = await getApoliticalChannels(interaction.guild);
+			if(channels.length <= 0) {
+				await interaction.reply({ephemeral: true, content: 'No channels designted as apolitical.'});
+			} else {
+				const str = "**Designated Apolitical Channels:** <#" + channels.join(">, <#") + ">";
+				await interaction.reply({ephemeral: true, content: str});
+			}
+		}
+	});
+	commandMap.set('addapolchan', async function (interaction: CommandInteraction) {
+		if(interaction.guild) {
+			if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+				await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+				return;
+			} else {
+				const channel = interaction.options.getChannel('channel');
+				if (channel == null) {
+					await interaction.reply({ephemeral: true, content: "Channel not found"});
+					return;
+				}
+				await addApoliticalChannel(interaction.guild, channel);
+			}
+		}
+	});
+	commandMap.set('addpolword', async function (interaction: CommandInteraction) {
+		if(interaction.guild) {
+			if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+				await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+				return;
+			} else {
+				const channel = interaction.options.getChannel('channel');
+				if (channel == null) {
+					await interaction.reply({ephemeral: true, content: "Channel not found"});
+					return;
+				}
+				await removeApoliticalChannel(interaction.guild, channel);
+			}
+		}
+	});
+    commandMap.set('polwords', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const channels = await getPoliticalWords(interaction.guild);
+			if(channels.length <= 0) {
+				await interaction.reply({ephemeral: true, content: 'No forbidden political words.'});
+			} else {
+				const str = "**Forbidden Political Words:** \"" + channels.join("\", \"") + "\"";
+				await interaction.reply({ephemeral: true, content: str});
+			}
+		}
+    });
+    commandMap.set('addpolword', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const word = interaction.options.getString('word');
+			if (word == null) {
+				return;
+			}
+			await addPoliticalWord(word, interaction.guild);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully added the word ${word} to the list of political words.`
+			});
+		}
+    });
+    commandMap.set('rempolword', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const word = interaction.options.getString('word');
+			if (word == null) {
+				return;
+			}
+			await removePoliticalWord(word, interaction.guild);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully removed the word ${word} from the list of political words.`
+			});
+		}
+    });
+    commandMap.set('nwords', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const channels = await getRacialSlurs(interaction.guild);
+			if(channels.length <= 0) {
+				await interaction.reply({ephemeral: true, content: 'No forbidden racial slurs.'});
+			} else {
+				const str = "**Forbidden Racial Slurs:** \"" + channels.join("\", \"") + "\"";
+				await interaction.reply({ephemeral: true, content: str});
+			}
+		}
+    });
+    commandMap.set('addnword', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const word = interaction.options.getString('word');
+			if (word == null) {
+				return;
+			}
+			await addRacialSlur(word, interaction.guild);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully added the word ${word} to the list of racial slurs.`
+			});
+		}
+    });
+    commandMap.set('remnword', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const word = interaction.options.getString('word');
+			if (word == null) {
+				return;
+			}
+			await removeRacialSlur(word, interaction.guild);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully removed the word ${word} from the list of racial slurs.`
+			});
+		}
+    });
+    commandMap.set('threatwords', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const channels = await getRacialSlurs(interaction.guild);
+			if(channels.length <= 0) {
+				await interaction.reply({ephemeral: true, content: 'No forbidden threatening slurs.'});
+			} else {
+				const str = "**Forbidden Racial Slurs:** \"" + channels.join("\", \"") + "\"";
+				await interaction.reply({ephemeral: true, content: str});
+			}
+		}
+    });
+    commandMap.set('addthreatword', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const word = interaction.options.getString('word');
+			if (word == null) {
+				return;
+			}
+			await addDeathThreat(word, interaction.guild);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully added the word ${word} to the list of threatening slurs.`
+			});
+		}
+    });
+    commandMap.set('remthreatword', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const word = interaction.options.getString('word');
+			if (word == null) {
+				return;
+			}
+			await removeDeathThreat(word, interaction.guild);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully removed the word ${word} from the list of threatening slurs.`
+			});
+		}
+    });
+    commandMap.set('mujahideen', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const channels = await getTrolledMembers(interaction.guild);
+			if(channels.length <= 0) {
+				await interaction.reply({ephemeral: true, content: 'No evil mujahideen on this server'});
+			} else {
+				const str = "**Evil Mujahideen:** <@!" + channels.join(">, <@!") + ">";
+				await interaction.reply({ephemeral: true, content: str});
+			}
+		}
+    });
+    commandMap.set('addmujahid', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const user = interaction.options.getUser('user');
+			if (user == null) {
+				await interaction.reply({ephemeral: true, content: "User not found"});
+				return;
+			}
+			await addTrolledMember(user,interaction.guild);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully added <@!${user.id}> to the list of Evil Mujahideen.`
+			});
+		}
+    });
+    commandMap.set('remmujahid', async function (interaction: CommandInteraction) {
+        if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
+            await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+            return;
+        }
+		if(interaction.guild) {
+			const user = interaction.options.getUser('user');
+			if (user == null) {
+				await interaction.reply({ephemeral: true, content: "User not found"});
+				return;
+			}
+			await removeTrolledMember(user,interaction.guild);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully removed <@!${user.id}> from the list of Evil Mujahideen.`
+			});
+		}
+    });
     console.log('Ready!');
     setInterval(saveSocialCredits, SOCIAL_CREDIT_WRITE_INTERVAL);
 });
@@ -430,19 +780,19 @@ client.on('messageCreate', async msg => {
     const lower = str.toLowerCase();
     const upper = str.toUpperCase();
     let validations: { deductions: number, replies: string[] } = {deductions: 0, replies: []};
-	getApoliticalChannels(msg.guild).forEach(channelId => {
+	for(const channelId in (await getApoliticalChannels(msg.guild)) ) {
 		if (msg.channelId === channelId) {
 			if(!msg.guild) return;
-			validations = validateMessage(str, getPoliticalWords(msg.guild), generateNoPolitickString(msg.channelId,getPoliticalChannel(msg.guild)),
+			validations = validateMessage(str, await getPoliticalWords(msg.guild), await generateNoPolitickString(msg.channelId, await getPoliticalChannel(msg.guild)),
 			 (str) => 10 + str.length, validations)
 		}
-	});
-    validations = validateMessage(str, getRacialSlurs(msg.guild), noSlurs, (str) => 10 + str.length, validations)
-    validations = validateMessage(str, getDeathThreats(msg.guild), noDeathThreats, (str) => 200 + str.length * 2, validations);
+	}
+    validations = validateMessage(str, await getRacialSlurs(msg.guild), noSlurs, (str) => 10 + str.length, validations)
+    validations = validateMessage(str, await getDeathThreats(msg.guild), noDeathThreats, (str) => 200 + str.length * 2, validations);
     if (upper === str && !(lower === str) && str.length >= 2) {
         validations = addMessage(5 + str.length, noCaps, validations)
     }
-	getTrolledMembers(msg.guild).forEach(badMember => {
+	(await getTrolledMembers(msg.guild)).forEach(badMember => {
 		if (msg.author.id ===  badMember) {
 			validations = addMessage(1 + str.length, randomItem(zhongSongs), validations)
 		}
