@@ -31,13 +31,14 @@ const hohols = [
     'https://tenor.com/view/%D1%81%D0%BB%D0%B0%D0%B2%D0%B8%D0%BA%D0%BE%D0%BB%D0%B4-%D0%B6%D0%BE%D0%B6%D0%BE-%D1%84%D0%BB%D0%B5%D0%BA%D1%81-%D0%BC%D1%83%D1%85%D0%B0%D0%BC%D0%BC%D0%B5%D0%B4-%D0%BA%D1%83%D0%B4%D0%B6%D0%BE-gif-16553377', 'https://tenor.com/view/%D1%85%D0%BE%D1%85%D0%BB%D0%B0-%D0%B7%D0%B0%D0%B1%D1%8B%D0%BB%D0%B8-moonphobia-gif-20381443', 'https://tenor.com/view/hohol-gif-20486476', 'https://tenor.com/view/ukraine-ukrainian-animation-scared-scary-aaaah-gif-12499590', 'https://tenor.com/view/azerbaycan-ukrayna-flag-bayra%C4%9F-%D0%B0%D0%B7%D0%B5%D1%80%D0%B1%D0%B0%D0%B9%D0%B4%D0%B6%D0%B0%D0%BD-gif-18215874', 'https://tenor.com/view/ukraine-flag-ukraine-flag-flag-ukraine-ukraine-map-gif-14339705', 'https://tenor.com/view/pig-piggy-hohol-hohlinka-cute-gif-20598787', 'https://tenor.com/view/hohol-gif-23566318', 'https://tenor.com/view/nikocado-avocado-mental-breakdown-mukbang-rage-angry-food-eating-gif-17940312'
 ];
 const inchenHanchi = 'https://youtu.be/3J6m2xwqLnY';
-const noCaps = 'Whoa, easy with the all-caps bro!';
+const noCaps = 'Whoa, easy with the all-caps, comrade!';
 const noSlurs = 'Please don\' use racial slurs, comrade. They\'re harmful to the server\'s existence.';
 const noDeathThreats = 'Issuing death threats on this server is the quickest way to get banned, comrade.'
-const noPolitick = 'Getting awfully political for <#795737593923895337>, comrade! Mind taking it to <#795737668654071818>?';
 const politicalWords = ['globohomo', 'globalist', 'nazi', 'communist', 'communism', 'racism', 'racist', 'transgender', 'commie', 'leftist', 'left-wing', 'right-wing', 'far-right', 'jew', 'joos', 'jooz', 'jude', 'jewish', 'kike', 'skype', 'judish', 'judisch', 'yiddish', 'żyd', 'jevrej', 'jevrei', 'yevrey', 'yevrei', 'long-nose tribe', 'holocaust'];
 const racialSlurs = ['nigger', 'knee-grow', 'nignog', 'nig-nog'];
 const deathThreats = ['ll kill you', 'll kill u'];
+const apoliticalChannels = [ '795737593923895337', '795737793368293406', '795738035987021896', '866941147389231104', '795742577974444093' ];
+const trolledMembers = [ '211532261386878976', '186891819622203392' ];
 let socialCredits = new Map<string, number>();
 const commandMap = new Map<string, (interaction: CommandInteraction) => Promise<void>>();
 const DEFAULT_SOCIAL_CREDITS = 1000;
@@ -49,6 +50,29 @@ let SOCRE_WRITES = 0;
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS]});
 
 // HELPER FUNCTIONS
+
+function getPoliticalWords(guild: Guild) : string[] {
+	return politicalWords;
+}
+function getRacialSlurs(guild: Guild) : string[] {
+	return racialSlurs;
+}
+function getDeathThreats(guild: Guild) : string[] {
+	return deathThreats;
+}
+function getApoliticalChannels(guild: Guild) : string[] {
+	return apoliticalChannels;
+}
+function getPoliticalChannel(guild: Guild) : string {
+	return '795737668654071818';
+}
+function generateNoPolitickString(id1: string, id2: string) : string {
+	return `Getting awfully political for <#${id1}>, comrade! Mind taking it to <#${id2}>?`;
+}
+// msg.author.id === '211532261386878976' || msg.author.id === '186891819622203392'
+function getTrolledMembers(guild: Guild) : string[] {
+	return trolledMembers;
+}
 
 function strMapToObj<U>(strMap: Map<string, U>): Record<string, U> {
     let obj = Object.create(null);
@@ -80,14 +104,14 @@ function randomItem<T>(items: T[]): T {
     return items[Math.floor((Math.random() * items.length))]
 }
 
-async function saveSocialCredits() {
+async function saveSocialCredits() : Promise<void> {
     const response = await axios.put(RestHttp + '/latest', strMapToObj(socialCredits))
     if (response.status == 200) {
         console.log('Succesfully flushed social credits!');
     }
 }
 
-async function loadSocialCredits() {
+async function loadSocialCredits() : Promise<void> {
     const response = await axios.get(RestHttp + '/latest');
     socialCredits = objToStrMap(await response.data);
 }
@@ -110,7 +134,7 @@ function getAllSocialCredits(guild: Guild) : string {
 	return str;
 }
 
-async function setSocialCredit(user: User, guild: Guild, credits: number) {
+async function setSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
     socialCredits.set(user.id, credits);
     ++SOCRE_WRITES;
     if (SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
@@ -119,7 +143,7 @@ async function setSocialCredit(user: User, guild: Guild, credits: number) {
     }
 }
 
-async function increaseSocialCredit(user: User, guild: Guild, credits: number) {
+async function increaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
     if (socialCredits.has(user.id)) {
         socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) + credits);
     } else {
@@ -132,7 +156,7 @@ async function increaseSocialCredit(user: User, guild: Guild, credits: number) {
     }
 }
 
-async function decreaseSocialCredit(user: User, guild: Guild, credits: number) {
+async function decreaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
     if (socialCredits.has(user.id)) {
         socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) - credits);
     } else {
@@ -145,7 +169,7 @@ async function decreaseSocialCredit(user: User, guild: Guild, credits: number) {
     }
 }
 
-async function socialPlus20(msg: Message | PartialMessage) {
+async function socialPlus20(msg: Message | PartialMessage) : Promise<void> {
     if (msg.author == null) {
         console.log("socialPlus20: Message had no author")
         return;
@@ -158,7 +182,7 @@ async function socialPlus20(msg: Message | PartialMessage) {
 	}
 }
 
-async function socialMinus20(msg: Message | PartialMessage) {
+async function socialMinus20(msg: Message | PartialMessage) : Promise<void> {
     if (msg.author == null) {
         console.log("socialMinus20: Message had no author")
         return;
@@ -387,19 +411,25 @@ client.on('messageCreate', async msg => {
     const lower = str.toLowerCase();
     const upper = str.toUpperCase();
     let validations: { deductions: number, replies: string[] } = {deductions: 0, replies: []};
-    if (msg.channelId === '795737593923895337') {
-        validations = validateMessage(str, politicalWords, noPolitick, (str) => 10 + str.length, validations)
-    }
-    validations = validateMessage(str, racialSlurs, noSlurs, (str) => 10 + str.length, validations)
-    validations = validateMessage(str, deathThreats, noDeathThreats, (str) => 200 + str.length * 2, validations);
+	getApoliticalChannels(msg.guild).forEach(channelId => {
+		if (msg.channelId === channelId) {
+			if(!msg.guild) return;
+			validations = validateMessage(str, getPoliticalWords(msg.guild), generateNoPolitickString(msg.channelId,getPoliticalChannel(msg.guild)),
+			 (str) => 10 + str.length, validations)
+		}
+	});
+    validations = validateMessage(str, getRacialSlurs(msg.guild), noSlurs, (str) => 10 + str.length, validations)
+    validations = validateMessage(str, getDeathThreats(msg.guild), noDeathThreats, (str) => 200 + str.length * 2, validations);
     if (upper === str && !(lower === str) && str.length >= 2) {
         validations = addMessage(5 + str.length, noCaps, validations)
     }
-    if (msg.author.id === '211532261386878976' || msg.author.id === '186891819622203392') {
-        validations = addMessage(1 + str.length, randomItem(zhongSongs), validations)
-    }
+	getTrolledMembers(msg.guild).forEach(badMember => {
+		if (msg.author.id ===  badMember) {
+			validations = addMessage(1 + str.length, randomItem(zhongSongs), validations)
+		}
+	});
     if (validations.deductions > 0) {
-        await decreaseSocialCredit(msg.author, msg.guild, 10 + str.length);
+        await decreaseSocialCredit(msg.author, msg.guild, validations.deductions);
         if (validations.replies.length > 0) {
             await msg.reply(validations.replies.join("\n"));
         }
