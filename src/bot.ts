@@ -3,16 +3,9 @@ import {Client, CommandInteraction, Intents, Message, PartialMessage, Permission
 import {SlashCommandBuilder} from '@discordjs/builders';
 import {REST} from '@discordjs/rest';
 import {APIInteractionDataResolvedChannel, Routes} from 'discord-api-types/v9';
-import {readFileSync} from 'fs';
+import { token, guildId, clientId, RestHttp } from './constants'
+import { GuildFunctions, SOCIAL_CREDIT_WRITE_INTERVAL } from './guild'
 
-console.log("Starting bot");
-
-const {
-    token,
-    guildId,
-    clientId,
-    RestHttp
-} = JSON.parse(readFileSync(process.env.AUTHLOC ? process.env.AUTHLOC : './auth.json').toString());
 
 const socialGood = 'https://i.imgur.com/PtGG2kM.png';
 const socialBad = 'https://i.imgur.com/QhxWTbd.png';
@@ -34,48 +27,12 @@ const inchenHanchi = 'https://youtu.be/3J6m2xwqLnY';
 const noCaps = 'Whoa, easy with the all-caps, comrade!';
 const noSlurs = 'Please don\' use racial slurs, comrade. They\'re harmful to the server\'s existence.';
 const noDeathThreats = 'Issuing death threats on this server is the quickest way to get banned, comrade.'
-const politicalWords = ['globohomo', 'globalist', 'nazi', 'communist', 'communism', 'racism', 'racist', 'transgender', 'commie', 'leftist', 'left-wing', 'right-wing', 'far-right', 'jew', 'joos', 'jooz', 'jude', 'jewish', 'kike', 'skype', 'judish', 'judisch', 'yiddish', 'żyd', 'jevrej', 'jevrei', 'yevrey', 'yevrei', 'long-nose tribe', 'holocaust'];
-const racialSlurs = ['nigger', 'knee-grow', 'nignog', 'nig-nog'];
-const deathThreats = ['ll kill you', 'll kill u'];
-const apoliticalChannels = [ '795737593923895337', '795737793368293406', '795738035987021896', '866941147389231104', '795742577974444093' ];
-const trolledMembers = [ '211532261386878976', '186891819622203392' ];
-let socialCredits = new Map<string, number>();
 const commandMap = new Map<string, (interaction: CommandInteraction) => Promise<void>>();
-const DEFAULT_SOCIAL_CREDITS = 1000;
-const SOCIAL_CREDIT_BATCH_WRITES = 250;
-const SOCIAL_CREDIT_WRITE_INTERVAL = 10000000;
-let SOCRE_WRITES = 0;
 
 // Create a new client instance
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS]});
 
 // HELPER FUNCTIONS
-
-function strMapToObj<U>(strMap: Map<string, U>): Record<string, U> {
-    let obj = Object.create(null);
-    for (let [k, v] of strMap) {
-        // We don’t escape the key '__proto__'
-        // which can cause problems on older engines
-        obj[k] = v;
-    }
-    return obj;
-}
-
-function objToStrMap<U>(obj: Record<string, U>): Map<string, U> {
-    let strMap = new Map();
-    for (let k of Object.keys(obj)) {
-        strMap.set(k, obj[k]);
-    }
-    return strMap;
-}
-
-function strMapToJson<T>(strMap: Map<string, T>): string {
-    return JSON.stringify(strMapToObj(strMap));
-}
-
-function jsonToStrMap<T>(jsonStr: string): Map<string, T> {
-    return objToStrMap(JSON.parse(jsonStr));
-}
 
 function randomItem<T>(items: T[]): T {
     return items[Math.floor((Math.random() * items.length))]
@@ -85,148 +42,13 @@ function sendToSteph(msg: any) {
     user?.send(msg);
 }
 
-//
-/// Guild specific functions waiting for rewrite
-// >
-async function saveSocialCredits() : Promise<void> {
-    const response = await axios.put(RestHttp + '/latest', strMapToObj(socialCredits))
-    if (response.status == 200) {
-        console.log('Succesfully flushed social credits!');
-    }
-}
-async function loadSocialCredits() : Promise<void> {
-    const response = await axios.get(RestHttp + '/latest');
-    socialCredits = objToStrMap(await response.data);
-}
-async function setPoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
-	return;
-}
-async function getPoliticalWords(guild: Guild) : Promise<string[]> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return politicalWords;
-}
-async function addPoliticalWord(word: string, guild: Guild) : Promise<void> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return;
-}
-async function removePoliticalWord(word: string, guild: Guild) : Promise<void> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return;
-}
-async function getRacialSlurs(guild: Guild) : Promise<string[]> {
-	// Guild parameter currently unused - slur words will be per-guild after the SQL transition
-	return racialSlurs;
-}
-async function addRacialSlur(word: string, guild: Guild) : Promise<void> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return;
-}
-async function removeRacialSlur(word: string, guild: Guild) : Promise<void> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return;
-}
-async function getDeathThreats(guild: Guild) : Promise<string[]> {
-	// Guild parameter currently unused - thread words will be per-guild after the SQL transition
-	return deathThreats;
-}
-async function addDeathThreat(word: string, guild: Guild) : Promise<void> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return;
-}
-async function removeDeathThreat(word: string, guild: Guild) : Promise<void> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return;
-}
-async function getApoliticalChannels(guild: Guild) : Promise<string[]> {
-	// Guild parameter currently unused - apolitical channel IDs will be per-guild after the SQL transition
-	return apoliticalChannels;
-}
-async function addApoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return;
-}
-async function removeApoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return;
-}
-async function getPoliticalChannel(guild: Guild) : Promise<string> {
-	// Guild parameter currently unused - political channel IDs will be per-guild after the SQL transition
-	return '795737668654071818';
-}
-async function generateNoPolitickString(id1: string, id2: string) : Promise<string> {
-	return `Getting awfully political for <#${id1}>, comrade! Mind taking it to <#${id2}>?`;
-}
-async function getTrolledMembers(guild: Guild) : Promise<string[]> {
-	// Guild parameter currently unused - trolled member IDs will be per-guild after the SQL transition
-	return trolledMembers;
-}
-async function addTrolledMember(user: User, guild: Guild) : Promise<void> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return;
-}
-async function removeTrolledMember(user: User, guild: Guild) : Promise<void> {
-	// Guild parameter currently unused - political words will be per-guild after the SQL transition
-	return;
-}
-async function getSocialCredits(user: User, guild: Guild) : Promise<number> {
-	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
-	if (socialCredits.has(user.id)) {
-		return socialCredits.get(user.id) || DEFAULT_SOCIAL_CREDITS;
-	} else return DEFAULT_SOCIAL_CREDITS;
-}
-async function getAllSocialCredits(guild: Guild) : Promise<Map<string, number>> {
-	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
-	return socialCredits;
-	/*let str = "";
-	socialCredits.forEach(function (value, key) {
-		str = str + `**<@!${key}>:** ${value}\n`
-	});
-	return str;*/
-}
-async function setSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
-	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
-    socialCredits.set(user.id, credits);
-    ++SOCRE_WRITES;
-    if (SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
-        await saveSocialCredits();
-        SOCRE_WRITES = 0;
-    }
-}
-async function increaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
-	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
-    if (socialCredits.has(user.id)) {
-        socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) + credits);
-    } else {
-        socialCredits.set(user.id, DEFAULT_SOCIAL_CREDITS + credits);
-    }
-    ++SOCRE_WRITES;
-    if (SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
-        await saveSocialCredits();
-        SOCRE_WRITES = 0;
-    }
-}
-async function decreaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
-	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
-    if (socialCredits.has(user.id)) {
-        socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) - credits);
-    } else {
-        socialCredits.set(user.id, DEFAULT_SOCIAL_CREDITS - credits);
-    }
-    ++SOCRE_WRITES;
-    if (SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
-        await saveSocialCredits();
-        SOCRE_WRITES = 0;
-    }
-}
-// ^ End of guild-specific functions
-
 async function socialPlus20(msg: Message | PartialMessage) : Promise<void> {
     if (msg.author == null) {
         console.log("socialPlus20: Message had no author")
         return;
     }
 	if(msg.guild) {
-    await increaseSocialCredit(msg.author, msg.guild, 20);
+    await GuildFunctions.increaseSocialCredit(msg.author, msg.guild, 20);
     await msg.reply({files: [socialGood]}).then(msg => {
         setTimeout(() => msg.delete(), 20000)
     });
@@ -239,7 +61,7 @@ async function socialMinus20(msg: Message | PartialMessage) : Promise<void> {
         return;
     }
 	if(msg.guild) {
-    await decreaseSocialCredit(msg.author, msg.guild, 20);
+    await GuildFunctions.decreaseSocialCredit(msg.author, msg.guild, 20);
     const msgResponse = await msg.reply({files: [socialBad]});
     setTimeout(() => msgResponse.delete(), 20000);
 	}
@@ -352,10 +174,10 @@ rest.put(Routes.applicationGuildCommands(clientId, guildId), {body: commands})
 
 // When the client is ready, run this code (only once)
 client.once('ready', () => {
-    loadSocialCredits();
+    GuildFunctions.loadSocialCredits();
     commandMap.set('flushsocre', async function (interaction: CommandInteraction) {
         if ((interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.ADMINISTRATOR)) {
-            await saveSocialCredits();
+            await GuildFunctions.saveSocialCredits();
             await interaction.reply({
                 ephemeral: true,
                 content: 'Succesfully flushed social credits to the filesystem!'
@@ -366,19 +188,19 @@ client.once('ready', () => {
     });
     commandMap.set('hohol', async function (interaction: CommandInteraction) {
 		if(interaction.guild) {
-			increaseSocialCredit(interaction.user, interaction.guild, 10);
+			GuildFunctions.increaseSocialCredit(interaction.user, interaction.guild, 10);
 			await interaction.reply(randomItem(hohols));
 		}
     });
     commandMap.set('zhongxina', async function (interaction: CommandInteraction) {
 		if(interaction.guild) {
-        	increaseSocialCredit(interaction.user, interaction.guild, 10);
+        	GuildFunctions.increaseSocialCredit(interaction.user, interaction.guild, 10);
         	await interaction.reply(randomItem(zhongSongs));
 		}
     });
     commandMap.set('mysocred', async function (interaction: CommandInteraction) {
 		if(!interaction.guild) return;
-        const socre = getSocialCredits(interaction.user,interaction.guild);
+        const socre = GuildFunctions.getSocialCredits(interaction.user,interaction.guild);
         await interaction.reply({
                 ephemeral: true,
                 content: `**Your tag:** <@!${interaction.user.id}>\n**Your social credits:** ${socre}`
@@ -391,7 +213,7 @@ client.once('ready', () => {
             await interaction.reply({ephemeral: true, content: "User not found"});
             return;
         }
-        const socre = getSocialCredits(user,interaction.guild);
+        const socre = GuildFunctions.getSocialCredits(user,interaction.guild);
         await interaction.reply({
                 ephemeral: true,
                 content: `**User tag:** <@!${user.id}>\n**User social credits:** ${socre}`
@@ -408,10 +230,10 @@ client.once('ready', () => {
 				await interaction.reply({ephemeral: true, content: 'User not found'})
 				return;
 			}
-			const prevSocre = getSocialCredits(user,interaction.guild);
+			const prevSocre = GuildFunctions.getSocialCredits(user,interaction.guild);
 			const credits = interaction.options.getInteger('credits');
-			await increaseSocialCredit(user, interaction.guild, credits ?? 0);
-			const socre = getSocialCredits(user,interaction.guild);
+			await GuildFunctions.increaseSocialCredit(user, interaction.guild, credits ?? 0);
+			const socre = GuildFunctions.getSocialCredits(user,interaction.guild);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${socre}.`
@@ -429,10 +251,10 @@ client.once('ready', () => {
 				await interaction.reply({ephemeral: true, content: 'User not found'})
 				return;
 			}
-			const prevSocre = getSocialCredits(user,interaction.guild);
+			const prevSocre = GuildFunctions.getSocialCredits(user,interaction.guild);
 			const credits = interaction.options.getInteger('credits');
-			await decreaseSocialCredit(user, interaction.guild, credits ?? 0);
-			const socre = getSocialCredits(user,interaction.guild);
+			await GuildFunctions.decreaseSocialCredit(user, interaction.guild, credits ?? 0);
+			const socre = GuildFunctions.getSocialCredits(user,interaction.guild);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${socre}.`
@@ -450,9 +272,9 @@ client.once('ready', () => {
 				await interaction.reply({ephemeral: true, content: "User not found"});
 				return;
 			}
-			const prevSocre = getSocialCredits(user,interaction.guild);
+			const prevSocre = GuildFunctions.getSocialCredits(user,interaction.guild);
 			const credits = interaction.options.getInteger('credits');
-			await setSocialCredit(user, interaction.guild, credits ?? 0);
+			await GuildFunctions.setSocialCredit(user, interaction.guild, credits ?? 0);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${credits}.`
@@ -462,7 +284,7 @@ client.once('ready', () => {
     commandMap.set('allsocred', async function (interaction: CommandInteraction) {
 		if(interaction.guild) {
 			let str = "";
-			(await getAllSocialCredits(interaction.guild)).forEach(function (value, key) {
+			(await GuildFunctions.getAllSocialCredits(interaction.guild)).forEach(function (value, key) {
 				str = str + `**<@!${key}>:** ${value}\n`
 			});
             await interaction.reply({ephemeral: true, content: str});
@@ -479,13 +301,13 @@ client.once('ready', () => {
 					await interaction.reply({ephemeral: true, content: "Channel not found"});
 					return;
 				}
-				await setPoliticalChannel(interaction.guild, channel);
+				await GuildFunctions.setPoliticalChannel(interaction.guild, channel);
 			}
 		}
 	});
 	commandMap.set('apolchans', async function (interaction: CommandInteraction) {
 		if(interaction.guild) {
-			const channels = await getApoliticalChannels(interaction.guild);
+			const channels = await GuildFunctions.getApoliticalChannels(interaction.guild);
 			if(channels.length <= 0) {
 				await interaction.reply({ephemeral: true, content: 'No channels designted as apolitical.'});
 			} else {
@@ -505,7 +327,7 @@ client.once('ready', () => {
 					await interaction.reply({ephemeral: true, content: "Channel not found"});
 					return;
 				}
-				await addApoliticalChannel(interaction.guild, channel);
+				await GuildFunctions.addApoliticalChannel(interaction.guild, channel);
 			}
 		}
 	});
@@ -520,7 +342,7 @@ client.once('ready', () => {
 					await interaction.reply({ephemeral: true, content: "Channel not found"});
 					return;
 				}
-				await removeApoliticalChannel(interaction.guild, channel);
+				await GuildFunctions.removeApoliticalChannel(interaction.guild, channel);
 			}
 		}
 	});
@@ -530,7 +352,7 @@ client.once('ready', () => {
             return;
         }
 		if(interaction.guild) {
-			const channels = await getPoliticalWords(interaction.guild);
+			const channels = await GuildFunctions.getPoliticalWords(interaction.guild);
 			if(channels.length <= 0) {
 				await interaction.reply({ephemeral: true, content: 'No forbidden political words.'});
 			} else {
@@ -549,7 +371,7 @@ client.once('ready', () => {
 			if (word == null) {
 				return;
 			}
-			await addPoliticalWord(word, interaction.guild);
+			await GuildFunctions.addPoliticalWord(word, interaction.guild);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully added the word ${word} to the list of political words.`
@@ -566,7 +388,7 @@ client.once('ready', () => {
 			if (word == null) {
 				return;
 			}
-			await removePoliticalWord(word, interaction.guild);
+			await GuildFunctions.removePoliticalWord(word, interaction.guild);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully removed the word ${word} from the list of political words.`
@@ -579,7 +401,7 @@ client.once('ready', () => {
             return;
         }
 		if(interaction.guild) {
-			const channels = await getRacialSlurs(interaction.guild);
+			const channels = await GuildFunctions.getRacialSlurs(interaction.guild);
 			if(channels.length <= 0) {
 				await interaction.reply({ephemeral: true, content: 'No forbidden racial slurs.'});
 			} else {
@@ -598,7 +420,7 @@ client.once('ready', () => {
 			if (word == null) {
 				return;
 			}
-			await addRacialSlur(word, interaction.guild);
+			await GuildFunctions.addRacialSlur(word, interaction.guild);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully added the word ${word} to the list of racial slurs.`
@@ -615,7 +437,7 @@ client.once('ready', () => {
 			if (word == null) {
 				return;
 			}
-			await removeRacialSlur(word, interaction.guild);
+			await GuildFunctions.removeRacialSlur(word, interaction.guild);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully removed the word ${word} from the list of racial slurs.`
@@ -628,7 +450,7 @@ client.once('ready', () => {
             return;
         }
 		if(interaction.guild) {
-			const channels = await getRacialSlurs(interaction.guild);
+			const channels = await GuildFunctions.getRacialSlurs(interaction.guild);
 			if(channels.length <= 0) {
 				await interaction.reply({ephemeral: true, content: 'No forbidden threatening slurs.'});
 			} else {
@@ -647,7 +469,7 @@ client.once('ready', () => {
 			if (word == null) {
 				return;
 			}
-			await addDeathThreat(word, interaction.guild);
+			await GuildFunctions.addDeathThreat(word, interaction.guild);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully added the word ${word} to the list of threatening slurs.`
@@ -664,7 +486,7 @@ client.once('ready', () => {
 			if (word == null) {
 				return;
 			}
-			await removeDeathThreat(word, interaction.guild);
+			await GuildFunctions.removeDeathThreat(word, interaction.guild);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully removed the word ${word} from the list of threatening slurs.`
@@ -677,7 +499,7 @@ client.once('ready', () => {
             return;
         }
 		if(interaction.guild) {
-			const channels = await getTrolledMembers(interaction.guild);
+			const channels = await GuildFunctions.getTrolledMembers(interaction.guild);
 			if(channels.length <= 0) {
 				await interaction.reply({ephemeral: true, content: 'No evil mujahideen on this server'});
 			} else {
@@ -697,7 +519,7 @@ client.once('ready', () => {
 				await interaction.reply({ephemeral: true, content: "User not found"});
 				return;
 			}
-			await addTrolledMember(user,interaction.guild);
+			await GuildFunctions.addTrolledMember(user,interaction.guild);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully added <@!${user.id}> to the list of Evil Mujahideen.`
@@ -715,7 +537,7 @@ client.once('ready', () => {
 				await interaction.reply({ephemeral: true, content: "User not found"});
 				return;
 			}
-			await removeTrolledMember(user,interaction.guild);
+			await GuildFunctions.removeTrolledMember(user,interaction.guild);
 			await interaction.reply({
 				ephemeral: true,
 				content: `Succesfully removed <@!${user.id}> from the list of Evil Mujahideen.`
@@ -723,11 +545,10 @@ client.once('ready', () => {
 		}
     });
     console.log('Ready!');
-    setInterval(saveSocialCredits, SOCIAL_CREDIT_WRITE_INTERVAL);
+    setInterval(GuildFunctions.saveSocialCredits, SOCIAL_CREDIT_WRITE_INTERVAL);
 });
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
-
     const {commandName} = interaction;
 	try {
 		const command = commandMap.get(commandName)
@@ -766,9 +587,9 @@ client.on('messageReactionRemove', async (reaction) => {
 		}
 		if(reaction.message.guild) {
 			if (str === '🇨🇳') {
-				await decreaseSocialCredit(reaction.message.author, reaction.message.guild, 20);
+				await GuildFunctions.decreaseSocialCredit(reaction.message.author, reaction.message.guild, 20);
 			} else if (str === '🇹🇼') {
-				await increaseSocialCredit(reaction.message.author, reaction.message.guild, 20);
+				await GuildFunctions.increaseSocialCredit(reaction.message.author, reaction.message.guild, 20);
 			}
 		}
 	}
@@ -800,25 +621,26 @@ client.on('messageCreate', async msg => {
 		const lower = str.toLowerCase();
 		const upper = str.toUpperCase();
 		let validations: { deductions: number, replies: string[] } = {deductions: 0, replies: []};
-		for(const channelId in (await getApoliticalChannels(msg.guild)) ) {
+		for(const channelId in (await GuildFunctions.getApoliticalChannels(msg.guild)) ) {
 			if (msg.channelId === channelId) {
 				if(!msg.guild) return;
-				validations = validateMessage(str, await getPoliticalWords(msg.guild), await generateNoPolitickString(msg.channelId, await getPoliticalChannel(msg.guild)),
+				validations = validateMessage(str, await GuildFunctions.getPoliticalWords(msg.guild), 
+				await GuildFunctions.generateNoPolitickString(msg.channelId, await GuildFunctions.getPoliticalChannel(msg.guild)),
 				(str) => 10 + str.length, validations)
 			}
 		}
-		validations = validateMessage(str, await getRacialSlurs(msg.guild), noSlurs, (str) => 10 + str.length, validations)
-		validations = validateMessage(str, await getDeathThreats(msg.guild), noDeathThreats, (str) => 200 + str.length * 2, validations);
+		validations = validateMessage(str, await GuildFunctions.getRacialSlurs(msg.guild), noSlurs, (str) => 10 + str.length, validations)
+		validations = validateMessage(str, await GuildFunctions.getDeathThreats(msg.guild), noDeathThreats, (str) => 200 + str.length * 2, validations);
 		if (upper === str && !(lower === str) && str.length >= 2) {
 			validations = addMessage(5 + str.length, noCaps, validations)
 		}
-		(await getTrolledMembers(msg.guild)).forEach(badMember => {
+		(await GuildFunctions.getTrolledMembers(msg.guild)).forEach(badMember => {
 			if (msg.author.id ===  badMember) {
 				validations = addMessage(1 + str.length, randomItem(zhongSongs), validations)
 			}
 		});
 		if (validations.deductions > 0) {
-			await decreaseSocialCredit(msg.author, msg.guild, validations.deductions);
+			await GuildFunctions.decreaseSocialCredit(msg.author, msg.guild, validations.deductions);
 			if (validations.replies.length > 0) {
 				await msg.reply(validations.replies.join("\n"));
 			}
@@ -831,7 +653,7 @@ client.on('messageCreate', async msg => {
 			await socialMinus20(msg);
 			return;
 		}
-		await increaseSocialCredit(msg.author, msg.guild, 1 + Math.round(Math.sqrt(str.length)));
+		await GuildFunctions.increaseSocialCredit(msg.author, msg.guild, 1 + Math.round(Math.sqrt(str.length)));
 	}
 	catch(e) {
 		console.log(e);
