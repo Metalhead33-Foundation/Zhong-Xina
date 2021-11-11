@@ -1,8 +1,8 @@
 import axios from 'axios';
-import {Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User, Guild} from 'discord.js';
+import {Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User, Guild, Channel, GuildChannel, ThreadChannel } from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import {REST} from '@discordjs/rest';
-import {Routes} from 'discord-api-types/v9';
+import {APIInteractionDataResolvedChannel, Routes} from 'discord-api-types/v9';
 import {readFileSync} from 'fs';
 
 console.log("Starting bot");
@@ -97,6 +97,9 @@ async function saveSocialCredits() : Promise<void> {
 async function loadSocialCredits() : Promise<void> {
     const response = await axios.get(RestHttp + '/latest');
     socialCredits = objToStrMap(await response.data);
+}
+async function setPoliticalChannel(guild: Guild, channel: GuildChannel | ThreadChannel | APIInteractionDataResolvedChannel) : Promise<void> {
+	return;
 }
 function getPoliticalWords(guild: Guild) : string[] {
 	return politicalWords;
@@ -228,7 +231,12 @@ const commands = [
         .addIntegerOption(option =>
             option.setName('credits')
                 .setDescription('How many credits to set to?')
-                .setRequired(true))
+                .setRequired(true)),
+	new SlashCommandBuilder().setName('setpolchan').setDescription('Sets the designated political channel.')
+		.addChannelOption(option =>
+			option.setName('channel')
+				.setDescription('The designated political channel.')
+				.setRequired(true))
 ].map(command => command.toJSON());
 const rest = new REST({version: '9'}).setToken(token);
 rest.put(Routes.applicationGuildCommands(clientId, guildId), {body: commands})
@@ -349,6 +357,21 @@ client.once('ready', () => {
             await interaction.reply({ephemeral: true, content: getAllSocialCredits(interaction.guild)});
 		}
     });
+	commandMap.set('setpolchan', async function (interaction: CommandInteraction) {
+		if(interaction.guild) {
+			if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
+				await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
+				return;
+			} else {
+				const channel = interaction.options.getChannel('channel');
+				if (channel == null) {
+					await interaction.reply({ephemeral: true, content: "Channel not found"});
+					return;
+				}
+				await setPoliticalChannel(interaction.guild, channel);
+			}
+		}
+	});
     console.log('Ready!');
     setInterval(saveSocialCredits, SOCIAL_CREDIT_WRITE_INTERVAL);
 });
