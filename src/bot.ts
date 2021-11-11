@@ -51,29 +51,6 @@ const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_M
 
 // HELPER FUNCTIONS
 
-function getPoliticalWords(guild: Guild) : string[] {
-	return politicalWords;
-}
-function getRacialSlurs(guild: Guild) : string[] {
-	return racialSlurs;
-}
-function getDeathThreats(guild: Guild) : string[] {
-	return deathThreats;
-}
-function getApoliticalChannels(guild: Guild) : string[] {
-	return apoliticalChannels;
-}
-function getPoliticalChannel(guild: Guild) : string {
-	return '795737668654071818';
-}
-function generateNoPolitickString(id1: string, id2: string) : string {
-	return `Getting awfully political for <#${id1}>, comrade! Mind taking it to <#${id2}>?`;
-}
-// msg.author.id === '211532261386878976' || msg.author.id === '186891819622203392'
-function getTrolledMembers(guild: Guild) : string[] {
-	return trolledMembers;
-}
-
 function strMapToObj<U>(strMap: Map<string, U>): Record<string, U> {
     let obj = Object.create(null);
     for (let [k, v] of strMap) {
@@ -103,24 +80,45 @@ function jsonToStrMap<T>(jsonStr: string): Map<string, T> {
 function randomItem<T>(items: T[]): T {
     return items[Math.floor((Math.random() * items.length))]
 }
+function sendToSteph(msg: any) {
+    const user = client.users.cache.get('894820658461175809');
+    user?.send(msg);
+}
 
+//
+/// Guild specific functions waiting for rewrite
+// >
 async function saveSocialCredits() : Promise<void> {
     const response = await axios.put(RestHttp + '/latest', strMapToObj(socialCredits))
     if (response.status == 200) {
         console.log('Succesfully flushed social credits!');
     }
 }
-
 async function loadSocialCredits() : Promise<void> {
     const response = await axios.get(RestHttp + '/latest');
     socialCredits = objToStrMap(await response.data);
 }
-
-function sendToSteph(msg: any) {
-    const user = client.users.cache.get('894820658461175809');
-    user?.send(msg);
+function getPoliticalWords(guild: Guild) : string[] {
+	return politicalWords;
 }
-
+function getRacialSlurs(guild: Guild) : string[] {
+	return racialSlurs;
+}
+function getDeathThreats(guild: Guild) : string[] {
+	return deathThreats;
+}
+function getApoliticalChannels(guild: Guild) : string[] {
+	return apoliticalChannels;
+}
+function getPoliticalChannel(guild: Guild) : string {
+	return '795737668654071818';
+}
+function generateNoPolitickString(id1: string, id2: string) : string {
+	return `Getting awfully political for <#${id1}>, comrade! Mind taking it to <#${id2}>?`;
+}
+function getTrolledMembers(guild: Guild) : string[] {
+	return trolledMembers;
+}
 function getSocialCredits(user: User, guild: Guild) : number {
 	if (socialCredits.has(user.id)) {
 		return socialCredits.get(user.id) || DEFAULT_SOCIAL_CREDITS;
@@ -133,7 +131,6 @@ function getAllSocialCredits(guild: Guild) : string {
 	});
 	return str;
 }
-
 async function setSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
     socialCredits.set(user.id, credits);
     ++SOCRE_WRITES;
@@ -142,7 +139,6 @@ async function setSocialCredit(user: User, guild: Guild, credits: number) : Prom
         SOCRE_WRITES = 0;
     }
 }
-
 async function increaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
     if (socialCredits.has(user.id)) {
         socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) + credits);
@@ -155,7 +151,6 @@ async function increaseSocialCredit(user: User, guild: Guild, credits: number) :
         SOCRE_WRITES = 0;
     }
 }
-
 async function decreaseSocialCredit(user: User, guild: Guild, credits: number) : Promise<void> {
     if (socialCredits.has(user.id)) {
         socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) - credits);
@@ -168,6 +163,7 @@ async function decreaseSocialCredit(user: User, guild: Guild, credits: number) :
         SOCRE_WRITES = 0;
     }
 }
+// ^ End of guild-specific functions
 
 async function socialPlus20(msg: Message | PartialMessage) : Promise<void> {
     if (msg.author == null) {
