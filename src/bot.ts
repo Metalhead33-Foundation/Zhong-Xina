@@ -81,7 +81,7 @@ function randomItem<T>(items: T[]): T {
 }
 
 async function saveSocialCredits() {
-    const response = await axios.put(RestHttp + '/latest', strMapToJson(socialCredits))
+    const response = await axios.put(RestHttp + '/latest', strMapToObj(socialCredits))
     if (response.status == 200) {
         console.log('Succesfully flushed social credits!');
     }
@@ -89,7 +89,7 @@ async function saveSocialCredits() {
 
 async function loadSocialCredits() {
     const response = await axios.get(RestHttp + '/latest');
-    socialCredits = jsonToStrMap(await response.data);
+    socialCredits = objToStrMap(await response.data);
 }
 
 function sendToSteph(msg: any) {
