@@ -512,4 +512,4 @@ function passCommands() : void {
     console.log("Registering commands!");
     registerCommands();    
 }
-export { randomItem, passCommands, zhongSongs }
+export { randomItem, passCommands, commandMap, zhongSongs }
