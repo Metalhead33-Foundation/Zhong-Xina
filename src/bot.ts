@@ -729,32 +729,51 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
 
     const {commandName} = interaction;
-    const command = commandMap.get(commandName)
-    if (command) {
-        await command(interaction);
-    }
+	try {
+		const command = commandMap.get(commandName)
+		if (command) {
+			await command(interaction);
+		}
+	}
+	catch(e) {
+		await interaction.reply({
+			ephemeral: true,
+			content: `Something went wrong!\n${e}`
+		});
+		console.log(e);
+	}
 });
 client.on('messageReactionAdd', async (reaction) => {
-    const str = reaction.emoji.toString();
-    // <@!906261693775093821>
-    if (str === '🇨🇳') {
-        await socialPlus20(reaction.message);
-    } else if (str === '🇹🇼') {
-        await socialMinus20(reaction.message);
-    }
+	try {
+		const str = reaction.emoji.toString();
+		// <@!906261693775093821>
+		if (str === '🇨🇳') {
+			await socialPlus20(reaction.message);
+		} else if (str === '🇹🇼') {
+			await socialMinus20(reaction.message);
+		}
+	}
+	catch(e) {
+		console.log(e);
+	}
 });
 client.on('messageReactionRemove', async (reaction) => {
-    const str = reaction.emoji.toString();
-    if (reaction.message.author == null) {
-        console.log("messageReactionRemove: Message had no author")
-        return;
-    }
-	if(reaction.message.guild) {
-		if (str === '🇨🇳') {
-			await decreaseSocialCredit(reaction.message.author, reaction.message.guild, 20);
-		} else if (str === '🇹🇼') {
-			await increaseSocialCredit(reaction.message.author, reaction.message.guild, 20);
+	try {
+		const str = reaction.emoji.toString();
+		if (reaction.message.author == null) {
+			console.log("messageReactionRemove: Message had no author")
+			return;
 		}
+		if(reaction.message.guild) {
+			if (str === '🇨🇳') {
+				await decreaseSocialCredit(reaction.message.author, reaction.message.guild, 20);
+			} else if (str === '🇹🇼') {
+				await increaseSocialCredit(reaction.message.author, reaction.message.guild, 20);
+			}
+		}
+	}
+	catch(e) {
+		console.log(e);
 	}
 });
 
@@ -775,43 +794,48 @@ function validateMessage(str: string, words: string[], reply: string, costFn: (s
 }
 
 client.on('messageCreate', async msg => {
-	if(!msg.guild) return;
-    const str = msg.content;
-    const lower = str.toLowerCase();
-    const upper = str.toUpperCase();
-    let validations: { deductions: number, replies: string[] } = {deductions: 0, replies: []};
-	for(const channelId in (await getApoliticalChannels(msg.guild)) ) {
-		if (msg.channelId === channelId) {
-			if(!msg.guild) return;
-			validations = validateMessage(str, await getPoliticalWords(msg.guild), await generateNoPolitickString(msg.channelId, await getPoliticalChannel(msg.guild)),
-			 (str) => 10 + str.length, validations)
+	try {
+		if(!msg.guild) return;
+		const str = msg.content;
+		const lower = str.toLowerCase();
+		const upper = str.toUpperCase();
+		let validations: { deductions: number, replies: string[] } = {deductions: 0, replies: []};
+		for(const channelId in (await getApoliticalChannels(msg.guild)) ) {
+			if (msg.channelId === channelId) {
+				if(!msg.guild) return;
+				validations = validateMessage(str, await getPoliticalWords(msg.guild), await generateNoPolitickString(msg.channelId, await getPoliticalChannel(msg.guild)),
+				(str) => 10 + str.length, validations)
+			}
 		}
+		validations = validateMessage(str, await getRacialSlurs(msg.guild), noSlurs, (str) => 10 + str.length, validations)
+		validations = validateMessage(str, await getDeathThreats(msg.guild), noDeathThreats, (str) => 200 + str.length * 2, validations);
+		if (upper === str && !(lower === str) && str.length >= 2) {
+			validations = addMessage(5 + str.length, noCaps, validations)
+		}
+		(await getTrolledMembers(msg.guild)).forEach(badMember => {
+			if (msg.author.id ===  badMember) {
+				validations = addMessage(1 + str.length, randomItem(zhongSongs), validations)
+			}
+		});
+		if (validations.deductions > 0) {
+			await decreaseSocialCredit(msg.author, msg.guild, validations.deductions);
+			if (validations.replies.length > 0) {
+				await msg.reply(validations.replies.join("\n"));
+			}
+			return;
+		}
+		if (str === '🇨🇳') {
+			await socialPlus20(msg);
+			return;
+		} else if (str === '🇹🇼') {
+			await socialMinus20(msg);
+			return;
+		}
+		await increaseSocialCredit(msg.author, msg.guild, 1 + Math.round(Math.sqrt(str.length)));
 	}
-    validations = validateMessage(str, await getRacialSlurs(msg.guild), noSlurs, (str) => 10 + str.length, validations)
-    validations = validateMessage(str, await getDeathThreats(msg.guild), noDeathThreats, (str) => 200 + str.length * 2, validations);
-    if (upper === str && !(lower === str) && str.length >= 2) {
-        validations = addMessage(5 + str.length, noCaps, validations)
-    }
-	(await getTrolledMembers(msg.guild)).forEach(badMember => {
-		if (msg.author.id ===  badMember) {
-			validations = addMessage(1 + str.length, randomItem(zhongSongs), validations)
-		}
-	});
-    if (validations.deductions > 0) {
-        await decreaseSocialCredit(msg.author, msg.guild, validations.deductions);
-        if (validations.replies.length > 0) {
-            await msg.reply(validations.replies.join("\n"));
-        }
-        return;
-    }
-    if (str === '🇨🇳') {
-        await socialPlus20(msg);
-        return;
-    } else if (str === '🇹🇼') {
-        await socialMinus20(msg);
-        return;
-    }
-    await increaseSocialCredit(msg.author, msg.guild, 1 + Math.round(Math.sqrt(str.length)));
+	catch(e) {
+		console.log(e);
+	}
 })
 
 // Login to Discord with your client's token
