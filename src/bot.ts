@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User} from 'discord.js';
+import {Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User, Guild} from 'discord.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import {REST} from '@discordjs/rest';
 import {Routes} from 'discord-api-types/v9';
@@ -97,7 +97,20 @@ function sendToSteph(msg: any) {
     user?.send(msg);
 }
 
-async function setSocialCredit(user: User, credits: number) {
+function getSocialCredits(user: User, guild: Guild) : number {
+	if (socialCredits.has(user.id)) {
+		return socialCredits.get(user.id) || DEFAULT_SOCIAL_CREDITS;
+	} else return DEFAULT_SOCIAL_CREDITS;
+}
+function getAllSocialCredits(guild: Guild) : string {
+	let str = "";
+	socialCredits.forEach(function (value, key) {
+		str = str + `**<@!${key}>:** ${value}\n`
+	});
+	return str;
+}
+
+async function setSocialCredit(user: User, guild: Guild, credits: number) {
     socialCredits.set(user.id, credits);
     ++SOCRE_WRITES;
     if (SOCRE_WRITES >= SOCIAL_CREDIT_BATCH_WRITES) {
@@ -106,7 +119,7 @@ async function setSocialCredit(user: User, credits: number) {
     }
 }
 
-async function increaseSocialCredit(user: User, credits: number) {
+async function increaseSocialCredit(user: User, guild: Guild, credits: number) {
     if (socialCredits.has(user.id)) {
         socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) + credits);
     } else {
@@ -119,7 +132,7 @@ async function increaseSocialCredit(user: User, credits: number) {
     }
 }
 
-async function decreaseSocialCredit(user: User, credits: number) {
+async function decreaseSocialCredit(user: User, guild: Guild, credits: number) {
     if (socialCredits.has(user.id)) {
         socialCredits.set(user.id, (socialCredits.get(user.id) ?? 0) - credits);
     } else {
@@ -137,10 +150,12 @@ async function socialPlus20(msg: Message | PartialMessage) {
         console.log("socialPlus20: Message had no author")
         return;
     }
-    await increaseSocialCredit(msg.author, 20);
+	if(msg.guild) {
+    await increaseSocialCredit(msg.author, msg.guild, 20);
     await msg.reply({files: [socialGood]}).then(msg => {
         setTimeout(() => msg.delete(), 20000)
     });
+	}
 }
 
 async function socialMinus20(msg: Message | PartialMessage) {
@@ -148,9 +163,11 @@ async function socialMinus20(msg: Message | PartialMessage) {
         console.log("socialMinus20: Message had no author")
         return;
     }
-    await decreaseSocialCredit(msg.author, 20);
+	if(msg.guild) {
+    await decreaseSocialCredit(msg.author, msg.guild, 20);
     const msgResponse = await msg.reply({files: [socialBad]});
     setTimeout(() => msgResponse.delete(), 20000);
+	}
 }
 
 // CLIENT REGISTRATIONS
@@ -213,110 +230,104 @@ client.once('ready', () => {
         }
     });
     commandMap.set('hohol', async function (interaction: CommandInteraction) {
-        increaseSocialCredit(interaction.user, 10);
-        await interaction.reply(randomItem(hohols));
+		if(interaction.guild) {
+			increaseSocialCredit(interaction.user, interaction.guild, 10);
+			await interaction.reply(randomItem(hohols));
+		}
     });
     commandMap.set('zhongxina', async function (interaction: CommandInteraction) {
-        increaseSocialCredit(interaction.user, 10);
-        await interaction.reply(randomItem(zhongSongs));
+		if(interaction.guild) {
+        	increaseSocialCredit(interaction.user, interaction.guild, 10);
+        	await interaction.reply(randomItem(zhongSongs));
+		}
     });
     commandMap.set('mysocred', async function (interaction: CommandInteraction) {
-        if (socialCredits.has(interaction.user.id)) {
-            const socre = socialCredits.get(interaction.user.id);
-            await interaction.reply({
+		if(!interaction.guild) return;
+        const socre = getSocialCredits(interaction.user,interaction.guild);
+        await interaction.reply({
                 ephemeral: true,
                 content: `**Your tag:** <@!${interaction.user.id}>\n**Your social credits:** ${socre}`
-            });
-        } else {
-            socialCredits.set(interaction.user.id, DEFAULT_SOCIAL_CREDITS);
-            await interaction.reply({
-                ephemeral: true,
-                content: `**Your tag:** <@!${interaction.user.id}>\n**Your social credits:** ${DEFAULT_SOCIAL_CREDITS}`
-            });
-        }
+        });
     });
     commandMap.set('socred', async function (interaction: CommandInteraction) {
+		if(!interaction.guild) return;
         const user = interaction.options.getUser('user');
         if (user == null) {
             await interaction.reply({ephemeral: true, content: "User not found"});
             return;
         }
-        if (socialCredits.has(user.id)) {
-            const socre = socialCredits.get(user.id);
-            await interaction.reply({
+        const socre = getSocialCredits(user,interaction.guild);
+        await interaction.reply({
                 ephemeral: true,
                 content: `**User tag:** <@!${user.id}>\n**User social credits:** ${socre}`
-            });
-        } else {
-            socialCredits.set(user.id, DEFAULT_SOCIAL_CREDITS);
-            await interaction.reply({
-                ephemeral: true,
-                content: `**User tag:** <@!${user.id}>\n**User social credits:** ${DEFAULT_SOCIAL_CREDITS}`
-            });
-        }
+        });
     });
     commandMap.set('socredadd', async function (interaction: CommandInteraction) {
         if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
             await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
             return;
         }
-        const user = interaction.options.getUser('user');
-        if (user == null) {
-            await interaction.reply({ephemeral: true, content: 'User not found'})
-            return;
-        }
-        const prevSocre = socialCredits.get(user.id);
-        const credits = interaction.options.getInteger('credits');
-        await increaseSocialCredit(user, credits ?? 0);
-        const socre = socialCredits.get(user.id);
-        await interaction.reply({
-            ephemeral: true,
-            content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${socre}.`
-        });
+		if(interaction.guild) {
+			const user = interaction.options.getUser('user');
+			if (user == null) {
+				await interaction.reply({ephemeral: true, content: 'User not found'})
+				return;
+			}
+			const prevSocre = getSocialCredits(user,interaction.guild);
+			const credits = interaction.options.getInteger('credits');
+			await increaseSocialCredit(user, interaction.guild, credits ?? 0);
+			const socre = getSocialCredits(user,interaction.guild);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${socre}.`
+			});
+		}
     });
     commandMap.set('socredneg', async function (interaction: CommandInteraction) {
         if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
             await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
             return;
         }
-        const user = interaction.options.getUser('user');
-        if (user == null) {
-            await interaction.reply({ephemeral: true, content: 'User not found'})
-            return;
-        }
-        const prevSocre = socialCredits.get(user.id);
-        const credits = interaction.options.getInteger('credits');
-        await decreaseSocialCredit(user, credits ?? 0);
-        const socre = socialCredits.get(user.id);
-        await interaction.reply({
-            ephemeral: true,
-            content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${socre}.`
-        });
+		if(interaction.guild) {
+			const user = interaction.options.getUser('user');
+			if (user == null) {
+				await interaction.reply({ephemeral: true, content: 'User not found'})
+				return;
+			}
+			const prevSocre = getSocialCredits(user,interaction.guild);
+			const credits = interaction.options.getInteger('credits');
+			await decreaseSocialCredit(user, interaction.guild, credits ?? 0);
+			const socre = getSocialCredits(user,interaction.guild);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${socre}.`
+			});
+		}
     });
     commandMap.set('socredset', async function (interaction: CommandInteraction) {
         if (!(interaction.member.permissions as Readonly<Permissions>).has(Permissions.FLAGS.BAN_MEMBERS)) {
             await interaction.reply({ephemeral: true, content: 'Admin-only command!'});
             return;
         }
-        const user = interaction.options.getUser('user');
-        if (user == null) {
-            await interaction.reply({ephemeral: true, content: "User not found"});
-            return;
-        }
-        const prevSocre = socialCredits.get(user.id);
-        const credits = interaction.options.getInteger('credits');
-        await setSocialCredit(user, credits ?? 0);
-        await interaction.reply({
-            ephemeral: true,
-            content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${credits}.`
-        });
+		if(interaction.guild) {
+			const user = interaction.options.getUser('user');
+			if (user == null) {
+				await interaction.reply({ephemeral: true, content: "User not found"});
+				return;
+			}
+			const prevSocre = getSocialCredits(user,interaction.guild);
+			const credits = interaction.options.getInteger('credits');
+			await setSocialCredit(user, interaction.guild, credits ?? 0);
+			await interaction.reply({
+				ephemeral: true,
+				content: `Succesfully set <@!${user.id}>'s social credits from ${prevSocre} to ${credits}.`
+			});
+		}
     });
     commandMap.set('allsocred', async function (interaction: CommandInteraction) {
-        let str = "";
-        socialCredits.forEach(function (value, key) {
-            str = str + `**<@!${key}>:** ${value}\n`
-        });
-        await interaction.reply({ephemeral: true, content: str});
+		if(interaction.guild) {
+            await interaction.reply({ephemeral: true, content: getAllSocialCredits(interaction.guild)});
+		}
     });
     console.log('Ready!');
     setInterval(saveSocialCredits, SOCIAL_CREDIT_WRITE_INTERVAL);
@@ -345,11 +356,13 @@ client.on('messageReactionRemove', async (reaction) => {
         console.log("messageReactionRemove: Message had no author")
         return;
     }
-    if (str === '🇨🇳') {
-        await decreaseSocialCredit(reaction.message.author, 20);
-    } else if (str === '🇹🇼') {
-        await increaseSocialCredit(reaction.message.author, 20);
-    }
+	if(reaction.message.guild) {
+		if (str === '🇨🇳') {
+			await decreaseSocialCredit(reaction.message.author, reaction.message.guild, 20);
+		} else if (str === '🇹🇼') {
+			await increaseSocialCredit(reaction.message.author, reaction.message.guild, 20);
+		}
+	}
 });
 
 function addMessage(cost: number, reply: string, prev: { deductions: number, replies: string[] }): { deductions: number, replies: string[] } {
@@ -369,6 +382,7 @@ function validateMessage(str: string, words: string[], reply: string, costFn: (s
 }
 
 client.on('messageCreate', async msg => {
+	if(!msg.guild) return;
     const str = msg.content;
     const lower = str.toLowerCase();
     const upper = str.toUpperCase();
@@ -385,7 +399,7 @@ client.on('messageCreate', async msg => {
         validations = addMessage(1 + str.length, randomItem(zhongSongs), validations)
     }
     if (validations.deductions > 0) {
-        await decreaseSocialCredit(msg.author, 10 + str.length);
+        await decreaseSocialCredit(msg.author, msg.guild, 10 + str.length);
         if (validations.replies.length > 0) {
             await msg.reply(validations.replies.join("\n"));
         }
@@ -398,7 +412,7 @@ client.on('messageCreate', async msg => {
         await socialMinus20(msg);
         return;
     }
-    await increaseSocialCredit(msg.author, 1 + Math.round(Math.sqrt(str.length)));
+    await increaseSocialCredit(msg.author, msg.guild, 1 + Math.round(Math.sqrt(str.length)));
 })
 
 // Login to Discord with your client's token
