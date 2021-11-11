@@ -1,6 +1,6 @@
-import { token, guildId, clientId, RestHttp } from './constants'
+import { token, guildId, clientId } from './constants'
 import * as GuildFunctions from './guild'
-import { Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User, Guild, Channel, GuildChannel, ThreadChannel } from 'discord.js';
+import { CommandInteraction, Permissions } from 'discord.js';
 import { SlashCommandBuilder} from '@discordjs/builders';
 import { REST} from '@discordjs/rest';
 import { Routes} from 'discord-api-types/v9';

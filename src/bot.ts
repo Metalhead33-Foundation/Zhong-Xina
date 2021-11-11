@@ -1,7 +1,7 @@
-import { Client, CommandInteraction, Intents, Message, PartialMessage, Permissions, User, Guild, Channel, GuildChannel, ThreadChannel } from 'discord.js';
+import { Client, Intents } from 'discord.js';
 import { token } from './constants'
 import * as GuildFunctions from './guild'
-import { randomItem, passCommands, commandMap, zhongSongs } from './commands'
+import { passCommands, commandMap } from './commands'
 import { checkupMsg, onReactCreate, onReactDestroy } from './message'
 
 // Create a new client instance
