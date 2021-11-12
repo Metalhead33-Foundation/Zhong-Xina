@@ -1,6 +1,6 @@
 import { MessageReaction, PartialMessageReaction, Message, PartialMessage } from 'discord.js';
 import * as GuildFunctions from './guild'
-import { randomItem, zhongSongs } from './commands'
+import { zhongSongs } from './commands/zhongxina'
 
 const socialGood = 'https://i.imgur.com/PtGG2kM.png';
 const socialBad = 'https://i.imgur.com/QhxWTbd.png';
@@ -71,7 +71,7 @@ async function checkupMsg(msg: Message) : Promise<void> {
 		}
 		(await GuildFunctions.getTrolledMembers(msg.guild)).forEach(badMember => {
 			if (msg.author.id ===  badMember) {
-				validations = addMessage(1 + str.length, randomItem(zhongSongs), validations)
+				validations = addMessage(1 + str.length, GuildFunctions.randomItem(zhongSongs), validations)
 			}
 		});
 		if (validations.deductions > 0) {

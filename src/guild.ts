@@ -14,6 +14,9 @@ let socialCredits = new Map<string, number>();
 let SOCRE_WRITES = 0;
 import { RestHttp } from './constants'
 
+export function randomItem<T>(items: T[]): T {
+    return items[Math.floor((Math.random() * items.length))]
+}
 function strMapToObj<U>(strMap: Map<string, U>): Record<string, U> {
     let obj = Object.create(null);
     for (let [k, v] of strMap) {
