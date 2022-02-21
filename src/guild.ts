@@ -12,6 +12,19 @@ const SOCIAL_CREDIT_BATCH_WRITES = 250;
 const SOCIAL_CREDIT_WRITE_INTERVAL = 10000000;
 let socialCredits = new Map<string, number>();
 let SOCRE_WRITES = 0;
+const tifas = [
+    'https://wimg.rule34.xxx//images/5001/f21355ea2d52093d734f168a62ffb59b.jpeg',
+	'https://cdn.discordapp.com/attachments/865226939887386644/945305760517201920/unknown.png',
+	'https://cdn.discordapp.com/attachments/865226939887386644/943882427170967552/273620938_8198993653460228_7348326665204201925_n.png',
+	'https://cdn.donmai.us/original/69/0c/__tifa_lockhart_final_fantasy_and_1_more_drawn_by_ira_town__690c94a6f7f495b933f04a111c3803a9.jpg',
+	'https://cdn.donmai.us/original/a7/27/__tifa_lockhart_final_fantasy_and_1_more_drawn_by_yeedee__a727f7b312c7516d8666e1b4284bd4fb.png',
+	'https://cdn.donmai.us/original/42/61/__tifa_lockhart_final_fantasy_and_2_more_drawn_by_monori_rogue__42610f5967e2e84dff6a020ecf237985.jpg',
+	'https://cdn.donmai.us/original/f7/c9/__tifa_lockhart_final_fantasy_and_2_more_drawn_by_waki_w4kih__f7c9c21cffa3175461c13083383047cf.jpg',
+	'https://cdn.donmai.us/original/7d/9c/__tifa_lockhart_final_fantasy_and_2_more_drawn_by_variasii__7d9c0e4396808346757bf1e57e05eee8.jpg',
+	'https://cdn.donmai.us/original/de/08/__tifa_lockhart_final_fantasy_and_2_more_drawn_by_arcie_albano__de08618db967ba3157bb169f4a870128.jpg',
+	'https://cdn.donmai.us/original/e6/63/__tifa_lockhart_final_fantasy_and_2_more_drawn_by_tony_guisado__e6633f948606ce6add20a72b12bf3566.jpg',
+	'https://cdn.donmai.us/original/35/dc/__tifa_lockhart_final_fantasy_and_1_more_drawn_by_r3dfive__35dc16286d1b7d689eb519318792ffaf.jpg'
+];
 import { RestHttp } from './constants'
 
 export function randomItem<T>(items: T[]): T {
@@ -164,6 +177,18 @@ export async function decreaseSocialCredit(user: User, guild: Guild, credits: nu
         await saveSocialCredits();
         SOCRE_WRITES = 0;
     }
+}
+export async function getTifas(guild: Guild) : Promise<string[]> {
+	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
+	return tifas;
+}
+export async function remTifa(user: string, guild: Guild) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
+}
+export async function addTifa(user: string, guild: Guild) : Promise<void> {
+	// Guild parameter currently unused - political words will be per-guild after the SQL transition
+	return;
 }
 
 export { SOCIAL_CREDIT_WRITE_INTERVAL }

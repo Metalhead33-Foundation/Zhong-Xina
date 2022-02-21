@@ -8,6 +8,16 @@ const noCaps = 'Whoa, easy with the all-caps, comrade!';
 const noSlurs = 'Please don\' use racial slurs, comrade. They\'re harmful to the server\'s existence.';
 const noDeathThreats = 'Issuing death threats on this server is the quickest way to get banned, comrade.'
 
+async function tifaReact(msg: Message | PartialMessage) : Promise<void> {
+    if (msg.author == null) {
+        console.log("socialPlus20: Message had no author")
+        return;
+    }
+	if(msg.guild) {
+    await GuildFunctions.increaseSocialCredit(msg.author, msg.guild, 20);
+    await msg.reply({files: [GuildFunctions.randomItem(await GuildFunctions.getTifas(msg.guild))]});
+	}
+}
 async function socialPlus20(msg: Message | PartialMessage) : Promise<void> {
     if (msg.author == null) {
         console.log("socialPlus20: Message had no author")
@@ -87,6 +97,9 @@ async function checkupMsg(msg: Message) : Promise<void> {
 		} else if (str === '🇹🇼') {
 			await socialMinus20(msg);
 			return;
+		} else if (str === '🇮🇹') {
+			await tifaReact(msg);
+			return;
 		}
 		await GuildFunctions.increaseSocialCredit(msg.author, msg.guild, 1 + Math.round(Math.sqrt(str.length)));
 	}
@@ -103,6 +116,8 @@ async function onReactCreate(reaction: MessageReaction | PartialMessageReaction)
 			await socialPlus20(reaction.message);
 		} else if (str === '🇹🇼') {
 			await socialMinus20(reaction.message);
+		} else if (str === '🇮🇹') {
+			await tifaReact(reaction.message);
 		}
 	}
 	catch(e) {
