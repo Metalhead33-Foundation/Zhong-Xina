@@ -1,4 +1,4 @@
-import { token, guildId, clientId } from './constants'
+import { token, guildId, clientId, RestHttp } from './constants'
 import { CommandInteraction } from 'discord.js';
 import { REST} from '@discordjs/rest';
 import { Routes} from 'discord-api-types/v9';
@@ -33,6 +33,10 @@ import * as tifa from './commands/tifa';
 const commandMap = new Map<string, (interaction: CommandInteraction) => Promise<void>>();
 
 async function registerCommands() : Promise<void> {
+	if(token == null || clientId == null || guildId == null || RestHttp == null) {
+		console.log("Environmental variables aren't set up properly!");
+		return;
+	}
 	commandMap.set(hohol.COMMAND.data.name,hohol.COMMAND.execute);
 	commandMap.set(zhongxina.COMMAND.data.name,zhongxina.COMMAND.execute);
 	commandMap.set(threatwords.COMMAND.data.name,threatwords.COMMAND.execute);
