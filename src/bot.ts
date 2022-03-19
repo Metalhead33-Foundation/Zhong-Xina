@@ -3,6 +3,7 @@ import { token } from './constants'
 import * as GuildFunctions from './guild'
 import { passCommands, commandMap } from './commands'
 import { checkupMsg, onReactCreate, onReactDestroy } from './message'
+import * as http from 'http';
 
 // Create a new client instance
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS]});
@@ -43,3 +44,9 @@ client.on('messageCreate', async msg => {
 
 // Login to Discord with your client's token
 client.login(token).then(() => console.log("Finished")).catch((e) => console.log("Error: " + e));
+http.createServer(function (request, response) {
+    console.log('request starting for ');
+    console.log(request);
+	response.writeHead(200, { 'Content-Type': "text/txt" });
+	response.end("Zhong Xina is online!", 'utf-8');
+ }).listen(process.env.PORT || 5000)
