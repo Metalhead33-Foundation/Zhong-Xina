@@ -66,8 +66,10 @@ async function checkupMsg(msg: Message) : Promise<void> {
 		const lower = str.toLowerCase();
 		const upper = str.toUpperCase();
 		let validations: { deductions: number, replies: string[] } = {deductions: 0, replies: []};
-		for(const channelId in (await GuildFunctions.getApoliticalChannels(msg.guild)) ) {
-			if (msg.channelId === channelId) {
+		const apoliticalChannels = await GuildFunctions.getApoliticalChannels(msg.guild);
+
+		for(let i = 0; i < apoliticalChannels.length; ++i) {
+			if (msg.channelId === apoliticalChannels[i]) {
 				if(!msg.guild) return;
 				validations = validateMessage(str, await GuildFunctions.getPoliticalWords(msg.guild), 
 				await GuildFunctions.generateNoPolitickString(msg.channelId, await GuildFunctions.getPoliticalChannel(msg.guild)),
