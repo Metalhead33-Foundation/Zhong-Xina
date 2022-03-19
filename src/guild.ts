@@ -75,7 +75,6 @@ export async function removePoliticalWord(word: string, guild: Guild) : Promise<
 }
 export async function getRacialSlurs(guild: Guild) : Promise<string[]> {
 	// Guild parameter currently unused - slur words will be per-guild after the SQL transition
-	console.log('Racuial slurs asked!');
 	return racialSlurs;
 }
 export async function addRacialSlur(word: string, guild: Guild) : Promise<void> {
