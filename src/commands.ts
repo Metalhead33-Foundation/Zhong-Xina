@@ -29,6 +29,7 @@ import * as addnword from './commands/addnword';
 import * as addmujahid from './commands/addmujahid';
 import * as addapolchan from './commands/addapolchan';
 import * as tifa from './commands/tifa';
+import * as eiko from './commands/eiko';
 
 const commandMap = new Map<string, (interaction: CommandInteraction) => Promise<void>>();
 
@@ -63,6 +64,7 @@ async function registerCommands() : Promise<void> {
 	commandMap.set(addmujahid.COMMAND.data.name,addmujahid.COMMAND.execute);
 	commandMap.set(addapolchan.COMMAND.data.name,addapolchan.COMMAND.execute);
 	commandMap.set(tifa.COMMAND.data.name,tifa.COMMAND.execute);
+	commandMap.set(eiko.COMMAND.data.name,eiko.COMMAND.execute);
     const commands = [ hohol.COMMAND.data,
 		zhongxina.COMMAND.data,
 		threatwords.COMMAND.data,
@@ -88,7 +90,8 @@ async function registerCommands() : Promise<void> {
 		addnword.COMMAND.data,
 		addmujahid.COMMAND.data,
 		addapolchan.COMMAND.data,
-		tifa.COMMAND.data].map(command => command.toJSON());
+		tifa.COMMAND.data,
+		eiko.COMMAND.data].map(command => command.toJSON());
 		const rest = new REST({version: '9'}).setToken(token);
 		await rest.put(Routes.applicationGuildCommands(clientId, guildId), {body: commands})
     .then(() => console.log('Successfully registered application commands.'))

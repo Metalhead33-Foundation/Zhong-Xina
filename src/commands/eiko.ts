@@ -2,11 +2,11 @@ import { SlashCommandBuilder} from '@discordjs/builders';
 import { CommandInteraction, Permissions } from 'discord.js';
 import * as GuildFunctions from '../guild';
 const COMMAND = {
-	data: new SlashCommandBuilder().setName('tifa').setDescription('Posts a cute Tifa picture.'),
+	data: new SlashCommandBuilder().setName('eiko').setDescription('Posts a cute Tsuki Eiko picture.'),
 	async execute(interaction: CommandInteraction) {
 		if(interaction.guild) {
 			GuildFunctions.increaseSocialCredit(interaction.user, interaction.guild, 10);
-			await interaction.reply(await GuildFunctions.getTifa(interaction.guild));
+			await interaction.reply(await GuildFunctions.getEiko(interaction.guild));
 		}
     },
 };

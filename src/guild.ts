@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { User, Guild, GuildChannel, ThreadChannel } from 'discord.js';
 import { APIInteractionDataResolvedChannel } from 'discord-api-types/v9';
+import * as GooglePhotosAlbum from 'google-photos-album-image-url-fetch';
 
 const politicalWords = ['globohomo', 'globalist', 'nazi', 'communist', 'communism', 'racism', 'racist', 'transgender', 'commie', 'leftist', 'left-wing', 'right-wing', 'far-right', 'jew', 'joos', 'jooz', 'jude', 'jewish', 'kike', 'skype', 'judish', 'judisch', 'yiddish', 'żyd', 'jevrej', 'jevrei', 'yevrey', 'yevrei', 'long-nose tribe', 'holocaust'];
 const racialSlurs = ['nigger', 'knee-grow', 'nignog', 'nig-nog'];
@@ -178,9 +179,15 @@ export async function decreaseSocialCredit(user: User, guild: Guild, credits: nu
         SOCRE_WRITES = 0;
     }
 }
-export async function getTifas(guild: Guild) : Promise<string[]> {
-	// Guild parameter currently unused - social credits for users will be per-guild after the SQL transition
-	return tifas;
+export async function getEiko(guild: Guild) : Promise<string> {
+	const re = await GooglePhotosAlbum.fetchImageUrls( Math.round(Math.random()) ? 'https://photos.app.goo.gl/msbaxPPwm5tsVBKN6' : 'https://photos.app.goo.gl/tUBaJp4qzrevYMG19');
+	if(re != null) return randomItem(re).url;
+	else return randomItem(tifas);
+}
+export async function getTifa(guild: Guild) : Promise<string> {
+	const re = await GooglePhotosAlbum.fetchImageUrls( Math.round(Math.random()) ? 'https://photos.app.goo.gl/dq39MwJ4jTf7AuKv9' : 'https://photos.app.goo.gl/WpNMYoXf9RbLKctc8');
+	if(re != null) return randomItem(re).url;
+	else return randomItem(tifas);
 }
 export async function remTifa(user: string, guild: Guild) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition

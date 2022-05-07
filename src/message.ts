@@ -15,7 +15,17 @@ async function tifaReact(msg: Message | PartialMessage) : Promise<void> {
     }
 	if(msg.guild) {
     await GuildFunctions.increaseSocialCredit(msg.author, msg.guild, 20);
-    await msg.reply({files: [GuildFunctions.randomItem(await GuildFunctions.getTifas(msg.guild))]});
+    await msg.reply({files: [await GuildFunctions.getTifa(msg.guild)]});
+	}
+}
+async function eikoReact(msg: Message | PartialMessage) : Promise<void> {
+    if (msg.author == null) {
+        console.log("socialPlus20: Message had no author")
+        return;
+    }
+	if(msg.guild) {
+    await GuildFunctions.increaseSocialCredit(msg.author, msg.guild, 20);
+    await msg.reply({files: [await GuildFunctions.getEiko(msg.guild)]});
 	}
 }
 async function socialPlus20(msg: Message | PartialMessage) : Promise<void> {
@@ -102,6 +112,9 @@ async function checkupMsg(msg: Message) : Promise<void> {
 		} else if (str === '🇮🇹') {
 			await tifaReact(msg);
 			return;
+		} else if (str === '🇭🇺') {
+			await eikoReact(msg);
+			return;
 		}
 		await GuildFunctions.increaseSocialCredit(msg.author, msg.guild, 1 + Math.round(Math.sqrt(str.length)));
 	}
@@ -120,6 +133,8 @@ async function onReactCreate(reaction: MessageReaction | PartialMessageReaction)
 			await socialMinus20(reaction.message);
 		} else if (str === '🇮🇹') {
 			await tifaReact(reaction.message);
+		} else if (str === '🇭🇺') {
+			await eikoReact(reaction.message);
 		}
 	}
 	catch(e) {
