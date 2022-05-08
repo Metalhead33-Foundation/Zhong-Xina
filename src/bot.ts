@@ -10,9 +10,13 @@ const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_M
 
 // When the client is ready, run this code (only once)
 client.once('ready', () => {
+	GuildFunctions.refreshEiko();
+	GuildFunctions.refreshTifa();
 	passCommands();
     console.log('Ready!');
     setInterval(GuildFunctions.saveSocialCredits, GuildFunctions.SOCIAL_CREDIT_WRITE_INTERVAL);
+    setInterval(GuildFunctions.refreshEiko, GuildFunctions.SOCIAL_CREDIT_WRITE_INTERVAL);
+    setInterval(GuildFunctions.refreshTifa, GuildFunctions.SOCIAL_CREDIT_WRITE_INTERVAL);
 });
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;

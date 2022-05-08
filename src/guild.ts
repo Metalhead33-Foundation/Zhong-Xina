@@ -13,6 +13,8 @@ const SOCIAL_CREDIT_BATCH_WRITES = 250;
 const SOCIAL_CREDIT_WRITE_INTERVAL = 10000000;
 let socialCredits = new Map<string, number>();
 let SOCRE_WRITES = 0;
+let eikosL: Array<string> = [];
+let tifasL: Array<string> = [];
 const tifas = [
     'https://wimg.rule34.xxx//images/5001/f21355ea2d52093d734f168a62ffb59b.jpeg',
 	'https://cdn.discordapp.com/attachments/865226939887386644/945305760517201920/unknown.png',
@@ -179,15 +181,41 @@ export async function decreaseSocialCredit(user: User, guild: Guild, credits: nu
         SOCRE_WRITES = 0;
     }
 }
+export async function refreshEiko() : Promise<void> {
+	const normal = await GooglePhotosAlbum.fetchImageUrls('https://photos.app.goo.gl/msbaxPPwm5tsVBKN6');
+	const ecchi = await GooglePhotosAlbum.fetchImageUrls('https://photos.app.goo.gl/tUBaJp4qzrevYMG19');
+	let received: Array<string> = [];
+	if(normal != null) normal.forEach(element => {
+		received.push(`${element.url}=w${element.width}-h${element.height}` );
+	});
+	if(ecchi != null) ecchi.forEach(element => {
+		received.push(`${element.url}=w${element.width}-h${element.height}` );
+	});
+	eikosL = received;
+}
+export async function refreshTifa() : Promise<void> {
+	const normal = await GooglePhotosAlbum.fetchImageUrls('https://photos.app.goo.gl/dq39MwJ4jTf7AuKv9');
+	const ecchi = await GooglePhotosAlbum.fetchImageUrls('https://photos.app.goo.gl/WpNMYoXf9RbLKctc8');
+	let received: Array<string> = [];
+	if(normal != null) normal.forEach(element => {
+		received.push(`${element.url}=w${element.width}-h${element.height}` );
+	});
+	if(ecchi != null) ecchi.forEach(element => {
+		received.push(`${element.url}=w${element.width}-h${element.height}` );
+	});
+	tifasL = received;
+}
 export async function getEiko(guild: Guild) : Promise<string> {
-	const re = await GooglePhotosAlbum.fetchImageUrls( Math.round(Math.random()) ? 'https://photos.app.goo.gl/msbaxPPwm5tsVBKN6' : 'https://photos.app.goo.gl/tUBaJp4qzrevYMG19');
-	if(re != null) return randomItem(re).url;
-	else return randomItem(tifas);
+	if(eikosL.length == 0) {
+		refreshEiko();
+	}
+	return randomItem(eikosL);
 }
 export async function getTifa(guild: Guild) : Promise<string> {
-	const re = await GooglePhotosAlbum.fetchImageUrls( Math.round(Math.random()) ? 'https://photos.app.goo.gl/dq39MwJ4jTf7AuKv9' : 'https://photos.app.goo.gl/WpNMYoXf9RbLKctc8');
-	if(re != null) return randomItem(re).url;
-	else return randomItem(tifas);
+	if(tifasL.length == 0) {
+		refreshTifa();
+	}
+	return randomItem(tifasL);
 }
 export async function remTifa(user: string, guild: Guild) : Promise<void> {
 	// Guild parameter currently unused - political words will be per-guild after the SQL transition

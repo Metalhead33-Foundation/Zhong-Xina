@@ -15,7 +15,7 @@ async function tifaReact(msg: Message | PartialMessage) : Promise<void> {
     }
 	if(msg.guild) {
     await GuildFunctions.increaseSocialCredit(msg.author, msg.guild, 20);
-    await msg.reply({files: [await GuildFunctions.getTifa(msg.guild)]});
+    await msg.reply(await GuildFunctions.getTifa(msg.guild));
 	}
 }
 async function eikoReact(msg: Message | PartialMessage) : Promise<void> {
@@ -25,7 +25,7 @@ async function eikoReact(msg: Message | PartialMessage) : Promise<void> {
     }
 	if(msg.guild) {
     await GuildFunctions.increaseSocialCredit(msg.author, msg.guild, 20);
-    await msg.reply({files: [await GuildFunctions.getEiko(msg.guild)]});
+    await msg.reply(await GuildFunctions.getEiko(msg.guild));
 	}
 }
 async function socialPlus20(msg: Message | PartialMessage) : Promise<void> {
